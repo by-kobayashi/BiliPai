@@ -14,9 +14,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import coil.compose.AsyncImage
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.border
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.*
@@ -298,6 +301,84 @@ fun SettingsScreen(
                         onClick = { showModeDialog = true },
                         iconTint = Color(0xFF5C6BC0) // Indigo
                     )
+                    Divider()
+
+                    // 🔥🔥 [新增] App 图标切换
+                    val currentIcon by viewModel.currentIcon.collectAsState()
+                    // 动态获取资源 ID (需要 context)
+                        val iconOptions = remember {
+                        listOf(
+                            Triple(".MainActivityDefault", "默认 (蓝)", com.android.purebilibili.R.mipmap.ic_launcher),
+                            Triple(".MainActivityMinimalist", "粉色极简", com.android.purebilibili.R.mipmap.ic_launcher_minimalist),
+                            Triple(".MainActivityGlass", "毛玻璃", com.android.purebilibili.R.mipmap.ic_launcher_glass),
+                            Triple(".MainActivityMascot", "Q版吉祥物", com.android.purebilibili.R.mipmap.ic_launcher_mascot),
+                            Triple(".MainActivityAbstract", "几何抽象", com.android.purebilibili.R.mipmap.ic_launcher_abstract),
+                        )
+                    }
+
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "应用图标", 
+                            style = MaterialTheme.typography.bodyLarge, 
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        androidx.compose.foundation.lazy.LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(iconOptions.size) { index ->
+                                val (alias, name, resId) = iconOptions[index]
+                                val isSelected = currentIcon == alias
+                                
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier
+                                        .width(72.dp)
+                                        .clickable { 
+                                            // 提示用户可能重启
+                                            Toast.makeText(context, "正在切换图标，应用可能会重启...", Toast.LENGTH_SHORT).show()
+                                            viewModel.changeAppIcon(alias) 
+                                        }
+                                ) {
+                                    Box(
+                                        contentAlignment = Alignment.BottomEnd
+                                    ) {
+                                        AsyncImage(
+                                            model = resId,
+                                            contentDescription = name,
+                                            modifier = Modifier
+                                                .size(64.dp)
+                                                .clip(RoundedCornerShape(14.dp))
+                                                .then(
+                                                    if (isSelected) Modifier.border(2.dp, BiliPink, RoundedCornerShape(14.dp))
+                                                    else Modifier
+                                                )
+                                        )
+                                        if (isSelected) {
+                                            Icon(
+                                                imageVector = Icons.Filled.CheckCircle,
+                                                contentDescription = null,
+                                                tint = BiliPink,
+                                                modifier = Modifier
+                                                    .size(20.dp)
+                                                    .background(Color.White, androidx.compose.foundation.shape.CircleShape)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = name,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = if (isSelected) BiliPink else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
                     Divider()
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

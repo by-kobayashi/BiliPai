@@ -90,4 +90,68 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setThemeMode(mode: AppThemeMode) { viewModelScope.launch { SettingsManager.setThemeMode(context, mode) } }
     fun toggleDynamicColor(value: Boolean) { viewModelScope.launch { SettingsManager.setDynamicColor(context, value) } }
     fun toggleBgPlay(value: Boolean) { viewModelScope.launch { SettingsManager.setBgPlay(context, value) } }
+
+    // --- App Icon Switching ---
+
+    private val _currentIcon = MutableStateFlow(".MainActivityDefault")
+    val currentIcon: StateFlow<String> = _currentIcon
+
+    init {
+        refreshCacheSize()
+        viewModelScope.launch {
+            _currentIcon.value = getCurrentIconAlias()
+        }
+    }
+
+    fun getCurrentIconAlias(): String {
+        val pm = context.packageManager
+        val packageName = context.packageName
+        
+        val aliases = listOf(
+            ".MainActivityDefault", // New default alias
+            ".MainActivityMinimalist",
+            ".MainActivityGlass",
+            ".MainActivityMascot",
+            ".MainActivityMascotBlue",
+            ".MainActivityAbstract"
+        )
+
+        for (alias in aliases) {
+            val componentName = android.content.ComponentName(packageName, "$packageName$alias")
+            if (pm.getComponentEnabledSetting(componentName) == android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
+                return alias
+            }
+        }
+        // If nothing is explicitly enabled or we are in a weird state, return current expectation
+        return ".MainActivityDefault"
+    }
+
+    fun changeAppIcon(aliasName: String) {
+        viewModelScope.launch {
+            val pm = context.packageManager
+            val packageName = context.packageName
+            val currentAlias = getCurrentIconAlias()
+
+            if (currentAlias == aliasName) return@launch
+
+            // Disable current
+            val disableComponent = android.content.ComponentName(packageName, "$packageName$currentAlias")
+            pm.setComponentEnabledSetting(
+                disableComponent,
+                android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                android.content.pm.PackageManager.DONT_KILL_APP
+            )
+
+            // Enable new
+            val enableComponent = android.content.ComponentName(packageName, "$packageName$aliasName")
+            pm.setComponentEnabledSetting(
+                enableComponent,
+                android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                android.content.pm.PackageManager.DONT_KILL_APP
+            )
+            
+            // Update state (though app might restart)
+            _currentIcon.value = aliasName
+        }
+    }
 }

@@ -16,6 +16,21 @@
 
 ---
 
+## 📸 预览 Preview
+
+<p align="center">
+  <img src="docs/images/home_light.png" alt="首页推荐" width="30%">
+  <img src="docs/images/video_player.png" alt="视频播放" width="30%">
+  <img src="docs/images/settings.png" alt="个性化设置" width="30%">
+</p>
+
+<p align="center">
+  <img src="docs/images/home_dark.png" alt="深色模式" width="30%">
+  <img src="docs/images/dynamic.png" alt="热门搜索" width="30%">
+</p>
+
+---
+
 ## ✨ 核心特性
 
 ### 🎨 现代化 UI
