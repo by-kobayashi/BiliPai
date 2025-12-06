@@ -1,6 +1,7 @@
 # BiliPai ( ゜- ゜)つロ 干杯~
 
 [![Telegram Channel](https://img.shields.io/badge/Telegram-Join%20Channel-blue?logo=telegram&logoColor=white)](https://t.me/BiliPai)
+[![Twitter Follow](https://img.shields.io/badge/X-Follow%20@YangY__0x00-black?logo=x&logoColor=white)](https://x.com/YangY_0x00)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Language-Kotlin-purple.svg" alt="Kotlin">
