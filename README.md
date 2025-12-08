@@ -100,6 +100,22 @@
 
 ---
 
+## 🙏 致谢
+
+感谢以下优秀的开源项目：
+
+| 项目 | 用途 |
+|------|------|
+| [Jetpack Compose](https://developer.android.com/jetpack/compose) | 现代化声明式 UI 框架 |
+| [ExoPlayer](https://github.com/google/ExoPlayer) | 强大的视频播放器 |
+| [Retrofit](https://github.com/square/retrofit) | 类型安全的 HTTP 客户端 |
+| [OkHttp](https://github.com/square/okhttp) | 高效的网络请求库 |
+| [Coil](https://github.com/coil-kt/coil) | Kotlin 优先的图片加载库 |
+| [Lottie](https://github.com/airbnb/lottie-android) | 精美的动画效果 |
+| [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect) | B 站 API 文档整理 |
+
+---
+
 ## 🤝 贡献
 
 欢迎各种形式的贡献！
@@ -109,6 +125,24 @@
 3. 提交更改 (`git commit -m 'Add AmazingFeature'`)
 4. 推送 (`git push origin feature/AmazingFeature`)
 5. 提交 Pull Request
+
+---
+
+## ⭐ Star History
+
+<a href="https://star-history.com/#jay3-yy/BiliPai&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=jay3-yy/BiliPai&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=jay3-yy/BiliPai&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=jay3-yy/BiliPai&type=Date" />
+ </picture>
+</a>
+
+---
+
+## 📄 许可证
+
+本项目基于 [MIT License](LICENSE) 开源。
 
 ---
 
