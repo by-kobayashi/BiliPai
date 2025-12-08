@@ -99,9 +99,14 @@ fun SubReplyList(
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-            Text("评论详情", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(
+                "评论详情",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
-        HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE0E0E0))
+        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
         LazyColumn(
             state = listState,
@@ -110,7 +115,7 @@ fun SubReplyList(
         ) {
             item {
                 ReplyItemView(item = rootReply, emoteMap = emoteMap, onClick = {}, onSubClick = {})
-                HorizontalDivider(thickness = 8.dp, color = Color(0xFFF1F2F3))
+                HorizontalDivider(thickness = 8.dp, color = MaterialTheme.colorScheme.surfaceContainerHigh)
             }
             items(subReplies) { item ->
                 ReplyItemView(item = item, emoteMap = emoteMap, onClick = {}, onSubClick = {})
@@ -118,9 +123,9 @@ fun SubReplyList(
             item {
                 Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
                     when {
-                        isLoading -> CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BiliPink)
-                        isEnd -> Text("没有更多回复了", color = Color.Gray, fontSize = 12.sp)
-                        else -> TextButton(onClick = onLoadMore) { Text("加载更多", color = BiliPink) }
+                        isLoading -> CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.primary)
+                        isEnd -> Text("没有更多回复了", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
+                        else -> TextButton(onClick = onLoadMore) { Text("加载更多", color = MaterialTheme.colorScheme.primary) }
                     }
                 }
             }

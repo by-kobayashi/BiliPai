@@ -30,12 +30,12 @@ fun WelcomeDialog(githubUrl: String, onConfirm: () -> Unit) {
             Column {
                 Text("本应用仅供学习使用。")
                 TextButton(onClick = { uriHandler.openUri(githubUrl) }) {
-                    Text("开源地址: $githubUrl", fontSize = 12.sp, color = BiliPink)
+                    Text("开源地址: $githubUrl", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                 }
             }
         },
         confirmButton = {
-            Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = BiliPink)) {
+            Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
                 Text("进入")
             }
         },
@@ -57,7 +57,7 @@ fun ErrorState(message: String, onRetry: () -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(containerColor = BiliPink)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("重试")
             }

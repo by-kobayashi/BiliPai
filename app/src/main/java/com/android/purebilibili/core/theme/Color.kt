@@ -26,3 +26,15 @@ val DarkSurface = Color(0xFF222222)
 val BiliPinkDark = Color(0xFFD46282)
 val TextPrimaryDark = Color(0xFFE1E1E1)
 val TextSecondaryDark = Color(0xFFAAAAAA)
+
+// 🔥🔥 [新增] --- 预设主题色 (用于自定义主题) ---
+val ThemeColors = listOf(
+    Color(0xFFFA7298),  // 0: 粉色 (默认 BiliPink)
+    Color(0xFF00A1D6),  // 1: 蓝色 (Bilibili Blue)
+    Color(0xFF4CAF50),  // 2: 绿色 (Material Green)
+    Color(0xFF9C27B0),  // 3: 紫色 (Material Purple)
+    Color(0xFFFF5722),  // 4: 橙色 (Material Deep Orange)
+    Color(0xFF607D8B),  // 5: 蓝灰色 (Material Blue Grey)
+)
+
+val ThemeColorNames = listOf("粉色", "蓝色", "绿色", "紫色", "橙色", "蓝灰")

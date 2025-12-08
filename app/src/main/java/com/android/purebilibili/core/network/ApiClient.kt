@@ -131,6 +131,14 @@ object NetworkModule {
             .protocols(listOf(Protocol.HTTP_1_1))
             .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
             .hostnameVerifier { _, _ -> true }
+            // 🔥 [新增] 超时配置，提高网络稳定性
+            .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            // 🔥 [新增] 自动重试和重定向
+            .retryOnConnectionFailure(true)
+            .followRedirects(true)
+            .followSslRedirects(true)
             .addInterceptor { chain ->
                 val original = chain.request()
                 val builder = original.newBuilder()

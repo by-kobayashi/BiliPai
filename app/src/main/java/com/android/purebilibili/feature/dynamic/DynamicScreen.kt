@@ -159,7 +159,7 @@ fun DynamicScreen(
                 state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = statusBarHeight + 56.dp),
                 containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = BiliPink
+                contentColor = MaterialTheme.colorScheme.primary
             )
             
             // 错误提示 - 使用现代化按钮

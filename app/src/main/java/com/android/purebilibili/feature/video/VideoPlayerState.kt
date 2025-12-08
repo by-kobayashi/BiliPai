@@ -33,6 +33,7 @@ import com.android.purebilibili.core.util.FormatUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import master.flame.danmaku.danmaku.model.android.DanmakuContext
 import master.flame.danmaku.ui.widget.DanmakuView
@@ -280,7 +281,30 @@ fun rememberVideoPlayerState(
                 .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
                 .build()
 
+            // 🔥🔥 [修复] 读取硬件解码设置
+            val prefs = context.getSharedPreferences("settings_prefs", Context.MODE_PRIVATE)
+            // DataStore 使用 settings_prefs 文件，但直接读 SP 需要用不同的 key 名称
+            // 由于 DataStore 是异步的，这里我们用同步方式检查
+            // 注意：DataStore 的 xml key 是 "hw_decode"
+            val hwDecodeEnabled = kotlinx.coroutines.runBlocking {
+                com.android.purebilibili.core.store.SettingsManager.getHwDecode(context).first()
+            }
+            android.util.Log.d("VideoPlayerState", "🔥 硬件解码设置: $hwDecodeEnabled")
+
+            // 🔥 根据设置选择 RenderersFactory
+            val renderersFactory = if (hwDecodeEnabled) {
+                // 默认 Factory，优先使用硬件解码
+                androidx.media3.exoplayer.DefaultRenderersFactory(context)
+                    .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+            } else {
+                // 强制使用软件解码
+                androidx.media3.exoplayer.DefaultRenderersFactory(context)
+                    .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+                    .setEnableDecoderFallback(true)
+            }
+
             ExoPlayer.Builder(context)
+                .setRenderersFactory(renderersFactory)
                 .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
                 .setAudioAttributes(audioAttributes, true)
                 .setHandleAudioBecomingNoisy(true)

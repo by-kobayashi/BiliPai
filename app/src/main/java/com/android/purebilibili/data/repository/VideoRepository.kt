@@ -80,29 +80,63 @@ object VideoRepository {
         }
     }
 
-    suspend fun getPlayUrlData(bvid: String, cid: Long, qn: Int): PlayUrlData? = withContext(Dispatchers.IO) {
-    // 🔥 简化策略：单次请求，如果 412 则等待 2s 后重试一次
-    var result = fetchPlayUrlWithWbi(bvid, cid, qn)
-    if (result == null) {
-        android.util.Log.d("VideoRepo", "🔥 First attempt failed, waiting 2s before retry...")
-        kotlinx.coroutines.delay(2000)
-        result = fetchPlayUrlWithWbi(bvid, cid, qn)
+    // 🔥🔥 [新增] WBI Key 缓存，防止递归请求时频繁访问 /nav 导致 412 风控
+    private var wbiKeysCache: Pair<String, String>? = null
+    private var wbiKeysTimestamp: Long = 0
+    private const val WBI_CACHE_DURATION = 1000 * 60 * 60 // 1小时缓存
+
+    private suspend fun getWbiKeys(): Pair<String, String> {
+        val currentCheck = System.currentTimeMillis()
+        if (wbiKeysCache != null && (currentCheck - wbiKeysTimestamp < WBI_CACHE_DURATION)) {
+            return wbiKeysCache!!
+        }
+
+        // 🔥 带重试的 WBI Key 获取
+        var lastError: Exception? = null
+        repeat(3) { attempt ->
+            try {
+                if (attempt > 0) {
+                    android.util.Log.d("VideoRepo", "🔥 getWbiKeys retry attempt ${attempt + 1}")
+                    kotlinx.coroutines.delay(500L * attempt)
+                }
+                
+                val navResp = api.getNavInfo()
+                val wbiImg = navResp.data?.wbi_img
+                
+                if (wbiImg != null) {
+                    val imgKey = wbiImg.img_url.substringAfterLast("/").substringBefore(".")
+                    val subKey = wbiImg.sub_url.substringAfterLast("/").substringBefore(".")
+                    
+                    wbiKeysCache = Pair(imgKey, subKey)
+                    wbiKeysTimestamp = currentCheck
+                    android.util.Log.d("VideoRepo", "🔥 WBI Keys obtained successfully")
+                    return wbiKeysCache!!
+                }
+            } catch (e: Exception) {
+                lastError = e
+                android.util.Log.w("VideoRepo", "getWbiKeys attempt ${attempt + 1} failed: ${e.message}")
+            }
+        }
+        
+        throw Exception("Wbi Keys Error after 3 attempts: ${lastError?.message}")
     }
-    result
-}
+
+    suspend fun getPlayUrlData(bvid: String, cid: Long, qn: Int): PlayUrlData? = withContext(Dispatchers.IO) {
+        // 🔥 简化策略：单次请求，如果 412 则等待 2s 后重试一次
+        var result = fetchPlayUrlWithWbi(bvid, cid, qn)
+        if (result == null) {
+            android.util.Log.d("VideoRepo", "🔥 First attempt failed, waiting 2s before retry...")
+            kotlinx.coroutines.delay(2000)
+            result = fetchPlayUrlWithWbi(bvid, cid, qn)
+        }
+        result
+    }
 
     // 🔥🔥 [稳定版核心修复] 获取评论列表
     suspend fun getComments(aid: Long, page: Int, ps: Int = 20): Result<ReplyData> = withContext(Dispatchers.IO) {
         try {
-            val navResp = api.getNavInfo()
-            val wbiImg = navResp.data?.wbi_img
-
-            if (wbiImg == null) {
-                return@withContext Result.failure(Exception("无法获取 Wbi 签名密钥"))
-            }
-
-            val imgKey = wbiImg.img_url.substringAfterLast("/").substringBefore(".")
-            val subKey = wbiImg.sub_url.substringAfterLast("/").substringBefore(".")
+            // 🔥 使用缓存 Keys
+            val (imgKey, subKey) = getWbiKeys()
 
             // 🔥 使用 TreeMap 保证签名顺序绝对正确
             val params = TreeMap<String, String>()
@@ -161,51 +195,77 @@ object VideoRepository {
         map
     }
 
+    // 🔥🔥 [优化] 核心播放地址获取逻辑，带指数退避重试
     private suspend fun fetchPlayUrlRecursive(bvid: String, cid: Long, targetQn: Int): PlayUrlData? {
-        try {
-            val data = fetchPlayUrlWithWbi(bvid, cid, targetQn)
-            // 🔥 修复：只要 API 返回有效数据就使用，不再强制降级
-            // API 会自动返回用户权限允许的最高画质
-            if (data != null && (!data.durl.isNullOrEmpty() || !data.dash?.video.isNullOrEmpty())) {
-                android.util.Log.d("VideoRepo", "🔥 Got valid PlayUrl: requested=$targetQn, actual=${data.quality}")
-                return data
-            }
-        } catch (e: Exception) {
-            android.util.Log.w("VideoRepo", "fetchPlayUrlRecursive failed for qn=$targetQn: ${e.message}")
-        }
-        var nextIndex = -1
-        if (targetQn in QUALITY_CHAIN) {
-            nextIndex = QUALITY_CHAIN.indexOf(targetQn) + 1
-        } else {
-            for (i in QUALITY_CHAIN.indices) {
-                if (QUALITY_CHAIN[i] < targetQn) { nextIndex = i; break }
-            }
-        }
-        if (nextIndex == -1 || nextIndex >= QUALITY_CHAIN.size) return null
+        // 🔥 策略改变：直接尝试获取，API 会自动返回用户可用的最高画质
+        // 不再强制递归降级，减少请求次数
         
-        // 🔥 增加延迟到 1500ms 防止 412 限流
-        kotlinx.coroutines.delay(1500)
-        return fetchPlayUrlRecursive(bvid, cid, QUALITY_CHAIN[nextIndex])
+        var lastError: Exception? = null
+        var retryDelays = listOf(0L, 1000L, 2000L) // 立即、1秒、2秒
+        
+        for ((attempt, delay) in retryDelays.withIndex()) {
+            if (delay > 0) {
+                android.util.Log.d("VideoRepo", "🔥 Retry attempt ${attempt + 1} after ${delay}ms...")
+                kotlinx.coroutines.delay(delay)
+            }
+            
+            try {
+                val data = fetchPlayUrlWithWbiInternal(bvid, cid, targetQn)
+                if (data != null && (!data.durl.isNullOrEmpty() || !data.dash?.video.isNullOrEmpty())) {
+                    android.util.Log.d("VideoRepo", "🔥 Got valid PlayUrl on attempt ${attempt + 1}: requested=$targetQn, actual=${data.quality}")
+                    return data
+                }
+            } catch (e: Exception) {
+                lastError = e
+                android.util.Log.w("VideoRepo", "fetchPlayUrl attempt ${attempt + 1} failed: ${e.message}")
+                
+                // 🔥 如果是 WBI Key 错误，尝试刷新缓存
+                if (e.message?.contains("Wbi Keys Error") == true) {
+                    wbiKeysCache = null
+                    wbiKeysTimestamp = 0
+                }
+            }
+        }
+        
+        // 🔥 所有重试都失败后，尝试降级画质（只降一级）
+        if (targetQn > 64) {
+            android.util.Log.d("VideoRepo", "🔥 All retries failed, trying lower quality...")
+            kotlinx.coroutines.delay(500)
+            return fetchPlayUrlRecursive(bvid, cid, 64) // 降级到 720P
+        }
+        
+        android.util.Log.e("VideoRepo", "🔥 fetchPlayUrlRecursive completely failed for bvid=$bvid")
+        return null
     }
 
+    // 🔥 内部方法：单次请求播放地址
+    private suspend fun fetchPlayUrlWithWbiInternal(bvid: String, cid: Long, qn: Int): PlayUrlData? {
+        android.util.Log.d("VideoRepo", "fetchPlayUrlWithWbiInternal: bvid=$bvid, cid=$cid, qn=$qn")
+        
+        // 🔥 使用缓存的 Keys
+        val (imgKey, subKey) = getWbiKeys()
+        
+        val params = mapOf(
+            "bvid" to bvid, "cid" to cid.toString(), "qn" to qn.toString(),
+            "fnval" to "16", "fnver" to "0", "fourk" to "1", "platform" to "html5", "high_quality" to "1"
+        )
+        val signedParams = WbiUtils.sign(params, imgKey, subKey)
+        val response = api.getPlayUrl(signedParams)
+        
+        android.util.Log.d("VideoRepo", "🔥 PlayUrl response: code=${response.code}, requestedQn=$qn, returnedQuality=${response.data?.quality}")
+        android.util.Log.d("VideoRepo", "🔥 accept_quality=${response.data?.accept_quality}, accept_description=${response.data?.accept_description}")
+        
+        if (response.code == 0) return response.data
+        
+        // 🔥 API 返回错误码
+        android.util.Log.e("VideoRepo", "🔥 PlayUrl API error: code=${response.code}, message=${response.message}")
+        return null
+    }
+
+    // 🔥🔥 [废弃旧方法，保留兼容性] 原 fetchPlayUrlWithWbi
     private suspend fun fetchPlayUrlWithWbi(bvid: String, cid: Long, qn: Int): PlayUrlData? {
         try {
-            android.util.Log.d("VideoRepo", "fetchPlayUrlWithWbi: bvid=$bvid, cid=$cid, qn=$qn")
-            val navResp = api.getNavInfo()
-            val wbiImg = navResp.data?.wbi_img ?: throw Exception("Key Error")
-            val imgKey = wbiImg.img_url.substringAfterLast("/").substringBefore(".")
-            val subKey = wbiImg.sub_url.substringAfterLast("/").substringBefore(".")
-            val params = mapOf(
-                "bvid" to bvid, "cid" to cid.toString(), "qn" to qn.toString(),
-                "fnval" to "16", "fnver" to "0", "fourk" to "1", "platform" to "html5", "high_quality" to "1"
-            )
-            val signedParams = WbiUtils.sign(params, imgKey, subKey)
-            val response = api.getPlayUrl(signedParams)
-            android.util.Log.d("VideoRepo", "🔥 PlayUrl response: code=${response.code}, requestedQn=$qn, returnedQuality=${response.data?.quality}, accept_quality=${response.data?.accept_quality}")
-            android.util.Log.d("VideoRepo", "🔥 accept_description=${response.data?.accept_description}")
-            android.util.Log.d("VideoRepo", "🔥 durl count=${response.data?.durl?.size}, first url length=${response.data?.durl?.firstOrNull()?.url?.length ?: 0}")
-            if (response.code == 0) return response.data
-            return null
+            return fetchPlayUrlWithWbiInternal(bvid, cid, qn)
         } catch (e: HttpException) {
             android.util.Log.e("VideoRepo", "HttpException: ${e.code()}")
             if (e.code() in listOf(402, 403, 404, 412)) return null

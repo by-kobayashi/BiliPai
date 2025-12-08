@@ -91,7 +91,7 @@ fun DanmakuSettingsPanel(
                         onCheckedChange = { onSettingsChange(settings.copy(enabled = it)) },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
-                            checkedTrackColor = BiliPink
+                            checkedTrackColor = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -217,7 +217,7 @@ private fun SettingSliderRow(
                 text = valueLabel,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = BiliPink
+                color = MaterialTheme.colorScheme.primary
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -226,8 +226,8 @@ private fun SettingSliderRow(
             onValueChange = onValueChange,
             valueRange = valueRange,
             colors = SliderDefaults.colors(
-                thumbColor = BiliPink,
-                activeTrackColor = BiliPink,
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
                 inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
             ),
             modifier = Modifier.fillMaxWidth()
@@ -243,7 +243,7 @@ private fun DanmakuTypeChip(
     modifier: Modifier = Modifier
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (selected) BiliPink else MaterialTheme.colorScheme.surfaceVariant,
+        targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
         label = "bg"
     )
     val contentColor by animateColorAsState(

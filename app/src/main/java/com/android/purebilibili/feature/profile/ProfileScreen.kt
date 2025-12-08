@@ -174,7 +174,7 @@ fun GuestProfileContent(
             // Logo
             Surface(
                 shape = RoundedCornerShape(24.dp),
-                color = BiliPink,
+                color = MaterialTheme.colorScheme.primary,
                 shadowElevation = 16.dp,
                 modifier = Modifier.size(100.dp)
             ) {
@@ -298,7 +298,7 @@ fun UserInfoSection(user: UserState) {
                 LevelTag(level = user.level)
                 Spacer(modifier = Modifier.width(8.dp))
                 if (user.isVip) {
-                    Surface(color = BiliPink, shape = RoundedCornerShape(4.dp)) {
+                    Surface(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(4.dp)) {
                         Text(user.vipLabel.ifEmpty { "大会员" }, fontSize = 10.sp, color = Color.White, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                     }
                 } else {

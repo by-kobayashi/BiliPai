@@ -226,7 +226,7 @@ fun VideoPlayerOverlay(
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
                     CircularProgressIndicator(
-                        color = BiliPink,
+                        color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 3.dp,
                         modifier = Modifier.size(36.dp)
                     )
@@ -294,7 +294,7 @@ fun TopControlBar(
             Icon(
                 if (isDanmakuOn) Icons.Default.Subtitles else Icons.Default.SubtitlesOff,
                 contentDescription = null,
-                tint = if (isDanmakuOn) BiliPink else Color.White.copy(alpha = 0.8f)
+                tint = if (isDanmakuOn) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.8f)
             )
         }
         Spacer(modifier = Modifier.width(8.dp))
@@ -409,8 +409,8 @@ fun VideoProgressBar(
             onSeek((tempProgress * duration).toLong())
         },
         colors = SliderDefaults.colors(
-            thumbColor = BiliPink,
-            activeTrackColor = BiliPink,
+            thumbColor = MaterialTheme.colorScheme.primary,
+            activeTrackColor = MaterialTheme.colorScheme.primary,
             inactiveTrackColor = Color.White.copy(alpha = 0.3f)
         ),
         modifier = Modifier
@@ -476,13 +476,13 @@ fun QualitySelectionMenu(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onQualitySelected(index) }
-                            .background(if (isSelected) BiliPink.copy(alpha = 0.15f) else Color.Transparent)
+                            .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color.Transparent)
                             .padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = quality,
-                            color = if (isSelected) BiliPink else Color.White.copy(0.9f),
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(0.9f),
                             fontSize = 14.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         )
@@ -507,7 +507,7 @@ fun QualitySelectionMenu(
                         Spacer(modifier = Modifier.weight(1f))
                         
                         if (isSelected) {
-                            Icon(Icons.Default.Check, null, tint = BiliPink, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                         }
                     }
                 }

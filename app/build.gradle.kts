@@ -37,6 +37,9 @@ android {
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("debug")
+            // Disable PNG crunching to avoid AAPT errors
+            isCrunchPngs = false
             // 🔥 暂时关闭 R8 混淆以修复反射崩溃问题
             // 问题: java.lang.Class cannot be cast to java.lang.reflect.ParameterizedType
             isMinifyEnabled = false

@@ -64,7 +64,7 @@ fun CommonListScreen(
                 ) {
                     Text(text = state.error ?: "未知错误", color = Color.Gray)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { viewModel.loadData() }, colors = ButtonDefaults.buttonColors(containerColor = BiliPink)) {
+                    Button(onClick = { viewModel.loadData() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
                         Text("重试")
                     }
                 }

@@ -18,6 +18,7 @@ import coil.compose.AsyncImage
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Send
@@ -139,7 +140,7 @@ fun SettingsScreen(
                             RadioButton(
                                 selected = (displayModeInt == mode.value),
                                 onClick = { saveMode(mode.value) },
-                                colors = RadioButtonDefaults.colors(selectedColor = BiliPink, unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                                colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary, unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(text = mode.title, color = MaterialTheme.colorScheme.onSurface)
@@ -147,7 +148,7 @@ fun SettingsScreen(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { showModeDialog = false }) { Text("取消", color = BiliPink) } },
+            confirmButton = { TextButton(onClick = { showModeDialog = false }) { Text("取消", color = MaterialTheme.colorScheme.primary) } },
             containerColor = MaterialTheme.colorScheme.surface,
             textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -178,7 +179,7 @@ fun SettingsScreen(
                                     showThemeDialog = false
                                 },
                                 colors = RadioButtonDefaults.colors(
-                                    selectedColor = BiliPink,
+                                    selectedColor = MaterialTheme.colorScheme.primary,
                                     unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             )
@@ -188,7 +189,7 @@ fun SettingsScreen(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { showThemeDialog = false }) { Text("取消", color = BiliPink) } },
+            confirmButton = { TextButton(onClick = { showThemeDialog = false }) { Text("取消", color = MaterialTheme.colorScheme.primary) } },
             containerColor = MaterialTheme.colorScheme.surface,
             textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -207,7 +208,7 @@ fun SettingsScreen(
                         Toast.makeText(context, "缓存已清除", Toast.LENGTH_SHORT).show()
                         showCacheDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = BiliPink)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) { Text("确认清除") }
             },
             dismissButton = { TextButton(onClick = { showCacheDialog = false }) { Text("取消", color = MaterialTheme.colorScheme.onSurfaceVariant) } },
@@ -227,7 +228,7 @@ fun SettingsScreen(
                         gotoPipSettings()
                         showPipPermissionDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = BiliPink)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) { Text("去设置") }
             },
             dismissButton = {
@@ -395,6 +396,73 @@ fun SettingsScreen(
                         Divider()
                     }
 
+                    // 🔥🔥 [新增] 主题色选择器
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Outlined.ColorLens,
+                                contentDescription = null,
+                                tint = Color(0xFFE91E63),
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column {
+                                Text(
+                                    text = "主题色",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (state.dynamicColor) "已启用动态取色，此设置无效" 
+                                           else "选择应用主色调",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            com.android.purebilibili.core.theme.ThemeColors.forEachIndexed { index, color ->
+                                val isSelected = state.themeColorIndex == index && !state.dynamicColor
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(androidx.compose.foundation.shape.CircleShape)
+                                        .background(color)
+                                        .then(
+                                            if (isSelected) Modifier.border(
+                                                3.dp, 
+                                                MaterialTheme.colorScheme.onSurface,
+                                                androidx.compose.foundation.shape.CircleShape
+                                            ) else Modifier
+                                        )
+                                        .clickable(enabled = !state.dynamicColor) { 
+                                            viewModel.setThemeColorIndex(index) 
+                                        }
+                                        .graphicsLayer { 
+                                            alpha = if (state.dynamicColor) 0.4f else 1f 
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isSelected) {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    Divider()
+
                     SettingClickableItem(
                         icon = Icons.Outlined.DarkMode,
                         title = "深色模式",
@@ -415,15 +483,6 @@ fun SettingsScreen(
                         checked = state.hwDecode,
                         onCheckedChange = { viewModel.toggleHwDecode(it) },
                         iconTint = Color(0xFF66BB6A) // Green
-                    )
-                    Divider()
-                    SettingSwitchItem(
-                        icon = Icons.Outlined.SmartDisplay,
-                        title = "视频自动播放",
-                        subtitle = "在列表静音播放预览",
-                        checked = state.autoPlay,
-                        onCheckedChange = { viewModel.toggleAutoPlay(it) },
-                        iconTint = Color(0xFFAB47BC) // Purple
                     )
                     Divider()
 
@@ -463,6 +522,68 @@ fun SettingsScreen(
                         },
                         iconTint = Color(0xFF78909C) // Blue Grey
                     )
+                    
+                    Divider()
+                    
+                    // 🔥🔥 [新增] 手势灵敏度滑块
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Outlined.TouchApp,
+                                contentDescription = null,
+                                tint = Color(0xFFFF9800),
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "手势灵敏度",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "调整快进/音量/亮度手势响应速度",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Text(
+                                text = "${(state.gestureSensitivity * 100).toInt()}%",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                "较慢",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Slider(
+                                value = state.gestureSensitivity,
+                                onValueChange = { viewModel.setGestureSensitivity(it) },
+                                valueRange = 0.5f..2.0f,
+                                steps = 5, // 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
+                                colors = SliderDefaults.colors(
+                                    thumbColor = MaterialTheme.colorScheme.primary,
+                                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                                ),
+                                modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+                            )
+                            Text(
+                                "较快",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
 
@@ -585,7 +706,7 @@ fun SettingSwitchItem(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = BiliPink,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
                 uncheckedThumbColor = MaterialTheme.colorScheme.outline,
                 uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
             ),

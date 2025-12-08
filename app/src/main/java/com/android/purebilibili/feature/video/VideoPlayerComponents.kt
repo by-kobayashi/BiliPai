@@ -83,7 +83,7 @@ fun VideoHeaderSection(info: ViewInfo) {
             // 关注按钮（优化设计）
             Surface(
                 onClick = { },
-                color = BiliPink,
+                color = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier.height(36.dp)
             ) {
@@ -139,12 +139,12 @@ fun VideoHeaderSection(info: ViewInfo) {
             if (info.tname.isNotEmpty()) {
                 Surface(
                     shape = RoundedCornerShape(4.dp),
-                    color = BiliPink.copy(alpha = 0.1f)
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                 ) {
                     Text(
                         text = info.tname,
                         fontSize = 11.sp,
-                        color = BiliPink,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
@@ -522,14 +522,14 @@ fun RelatedVideoItem(video: RelatedVideo, onClick: () -> Unit) {
                 ) {
                     // UP主头标
                     Surface(
-                        color = BiliPink.copy(alpha = 0.1f),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
                             text = "UP",
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BiliPink,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
                         )
                     }

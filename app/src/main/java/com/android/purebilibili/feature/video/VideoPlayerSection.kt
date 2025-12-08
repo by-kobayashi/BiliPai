@@ -55,6 +55,11 @@ fun VideoPlayerSection(
     val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
     // 使用 rememberUpdatedState 确保重组时获取最新值（虽然在单一 Activity 生命周期内可能需要重启生效，但简单场景够用）
     val showStats by remember { mutableStateOf(prefs.getBoolean("show_stats", false)) }
+    
+    // 🔥🔥 [新增] 读取手势灵敏度设置
+    val gestureSensitivity by com.android.purebilibili.core.store.SettingsManager
+        .getGestureSensitivity(context)
+        .collectAsState(initial = 1.0f)
 
     // --- 新增：存储真实分辨率 ---
     var realResolution by remember { mutableStateOf("") }
@@ -177,13 +182,15 @@ fun VideoPlayerSection(
                                 VideoGestureMode.Seek -> {
                                     totalDragDistanceX += dragAmount.x
                                     val duration = playerState.player.duration.coerceAtLeast(0L)
-                                    val seekDelta = (totalDragDistanceX * 200).toLong()
+                                    // 🔥 应用灵敏度
+                                    val seekDelta = (totalDragDistanceX * 200 * gestureSensitivity).toLong()
                                     seekTargetTime = (startPosition + seekDelta).coerceIn(0L, duration)
                                 }
                                 VideoGestureMode.Brightness -> {
                                     totalDragDistanceY -= dragAmount.y
                                     val screenHeight = context.resources.displayMetrics.heightPixels
-                                    val deltaPercent = totalDragDistanceY / screenHeight
+                                    // 🔥 应用灵敏度
+                                    val deltaPercent = totalDragDistanceY / screenHeight * gestureSensitivity
                                     val newBrightness = (startBrightness + deltaPercent).coerceIn(0f, 1f)
 
                                     getActivity()?.window?.attributes = getActivity()?.window?.attributes?.apply {
@@ -195,7 +202,8 @@ fun VideoPlayerSection(
                                 VideoGestureMode.Volume -> {
                                     totalDragDistanceY -= dragAmount.y
                                     val screenHeight = context.resources.displayMetrics.heightPixels
-                                    val deltaPercent = totalDragDistanceY / screenHeight
+                                    // 🔥 应用灵敏度
+                                    val deltaPercent = totalDragDistanceY / screenHeight * gestureSensitivity
                                     val newVolPercent = ((startVolume.toFloat() / maxVolume) + deltaPercent).coerceIn(0f, 1f)
                                     val targetVol = (newVolPercent * maxVolume).toInt()
                                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVol, 0)

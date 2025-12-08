@@ -11,16 +11,22 @@ import android.util.Rational
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
@@ -75,21 +81,25 @@ class MainActivity : ComponentActivity() {
 
             // 🔥🔥 2. [新增] 获取动态取色设置 (默认为 true)
             val dynamicColor by SettingsManager.getDynamicColor(context).collectAsState(initial = true)
+            
+            // 🔥🔥 3. [新增] 获取主题色索引
+            val themeColorIndex by SettingsManager.getThemeColorIndex(context).collectAsState(initial = 0)
 
-            // 3. 获取系统当前的深色状态
+            // 4. 获取系统当前的深色状态
             val systemInDark = isSystemInDarkTheme()
 
-            // 4. 根据枚举值决定是否开启 DarkTheme
+            // 5. 根据枚举值决定是否开启 DarkTheme
             val useDarkTheme = when (themeMode) {
                 AppThemeMode.FOLLOW_SYSTEM -> systemInDark // 跟随系统：系统黑则黑，系统白则白
                 AppThemeMode.LIGHT -> false                // 强制浅色
                 AppThemeMode.DARK -> true                  // 强制深色
             }
 
-            // 5. 传入参数
+            // 6. 传入参数
             PureBiliBiliTheme(
                 darkTheme = useDarkTheme,
-                dynamicColor = dynamicColor // 🔥🔥 传入动态取色开关
+                dynamicColor = dynamicColor,
+                themeColorIndex = themeColorIndex // 🔥🔥 传入主题色索引
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     Surface(
@@ -203,7 +213,7 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * 🔥 首次启动欢迎弹窗
+ * 🔥 首次启动欢迎弹窗 - 精美设计版
  */
 @Composable
 fun WelcomeDialog(onDismiss: () -> Unit) {
@@ -211,20 +221,39 @@ fun WelcomeDialog(onDismiss: () -> Unit) {
     
     AlertDialog(
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 8.dp,
         title = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("🎉", fontSize = 48.sp)
-                Spacer(modifier = Modifier.height(8.dp))
+                // 🔥 应用 Logo - 使用实际应用图标
+                Image(
+                    painter = painterResource(id = R.mipmap.ic_launcher_mascot_blue),
+                    contentDescription = "BiliPai Logo",
+                    modifier = Modifier
+                        .size(88.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
                 Text(
                     "欢迎使用 BiliPai",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = BiliPink
+                    fontSize = 22.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                Text(
+                    "简洁 · 流畅 · 开源",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 2.sp
                 )
             }
         },
@@ -232,59 +261,88 @@ fun WelcomeDialog(onDismiss: () -> Unit) {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState())
             ) {
-                // 祝福语
-                Text(
-                    "✨ 愿这款应用能带给你美好的观影体验！\n\n" +
-                    "BiliPai 是一款开源的第三方 Bilibili 客户端，致力于提供简洁、流畅的使用体验。",
-                    fontSize = 14.sp,
-                    lineHeight = 22.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // 开源信息
-                Surface(
-                    color = BiliPink.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
+                // 🔥 特性介绍
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            "📦 开源地址",
-                            fontWeight = FontWeight.Medium,
-                            color = BiliPink
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            "github.com/jay3-yy/BiliPai",
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    FeatureChip("🎬", "高清播放")
+                    FeatureChip("💬", "弹幕评论")
+                    FeatureChip("🔒", "隐私保护")
+                }
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                // 🔥 开源信息卡片
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { uriHandler.openUri("https://github.com/jay3-yy/BiliPai") }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                    shape = CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("⭐", fontSize = 20.sp)
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "开源项目",
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                "github.com/jay3-yy/BiliPai",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Text("→", fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 
-                // 免责声明
+                // 🔥 免责声明 - 适配深色模式
                 Surface(
-                    color = Color(0xFFFFF3CD),
-                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            "⚠️ 免责声明",
-                            fontWeight = FontWeight.Medium,
-                            color = Color(0xFF856404)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            "本应用仅供学习交流使用，所有内容版权归 Bilibili 及原作者所有。请勿用于商业用途。",
-                            fontSize = 12.sp,
-                            lineHeight = 18.sp,
-                            color = Color(0xFF856404)
-                        )
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text("📋", fontSize = 16.sp)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                "使用须知",
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                "本应用仅供学习交流，所有内容版权归 Bilibili 及原作者。",
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+                            )
+                        }
                     }
                 }
             }
@@ -292,11 +350,48 @@ fun WelcomeDialog(onDismiss: () -> Unit) {
         confirmButton = {
             Button(
                 onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = BiliPink),
-                shape = RoundedCornerShape(12.dp)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
             ) {
-                Text("开始体验 🚀", fontWeight = FontWeight.Medium)
+                Text(
+                    "开始探索",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
             }
         }
     )
+}
+
+/**
+ * 🔥 特性小标签
+ */
+@Composable
+private fun FeatureChip(emoji: String, label: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(emoji, fontSize = 22.sp)
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            label,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 }

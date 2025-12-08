@@ -161,7 +161,7 @@ fun SearchScreen(
                                                     "${index + 1}",
                                                     fontSize = 12.sp,
                                                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                                    color = BiliPink
+                                                    color = MaterialTheme.colorScheme.primary
                                                 )
                                                 Spacer(modifier = Modifier.width(4.dp))
                                             }
@@ -317,7 +317,7 @@ fun SearchTopBar(
     
     // 🔥 搜索图标颜色动画
     val searchIconColor by animateColorAsState(
-        targetValue = if (isFocused) BiliPink else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+        targetValue = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
         animationSpec = tween(durationMillis = 200),
         label = "iconColor"
     )
@@ -355,7 +355,7 @@ fun SearchTopBar(
                         .clip(RoundedCornerShape(50))
                         .border(
                             width = borderWidth,
-                            color = BiliPink,
+                            color = MaterialTheme.colorScheme.primary,
                             shape = RoundedCornerShape(50)
                         )
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
@@ -382,7 +382,7 @@ fun SearchTopBar(
                             fontSize = 15.sp
                         ),
                         singleLine = true,
-                        cursorBrush = SolidColor(BiliPink),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = { onSearch(query) }),
                         decorationBox = { inner ->
@@ -424,7 +424,7 @@ fun SearchTopBar(
                 ) {
                     Text(
                         "搜索",
-                        color = if (query.isNotEmpty()) BiliPink else MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f),
+                        color = if (query.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f),
                         fontSize = 16.sp
                     )
                 }

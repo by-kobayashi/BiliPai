@@ -5,57 +5,63 @@ import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme // 🔥 导入
-import androidx.compose.material3.dynamicLightColorScheme // 🔥 导入
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 // --- 扩展颜色定义 ---
-private val DarkSurfaceVariant = Color(0xFF2A2A2A) // 深色模式下的搜索框背景
-private val LightSurfaceVariant = Color(0xFFF1F2F3) // 浅色模式下的搜索框背景
+private val DarkSurfaceVariant = Color(0xFF2A2A2A)
+private val LightSurfaceVariant = Color(0xFFF1F2F3)
 
-// 深色模式配色 (自定义保底)
-private val DarkColorScheme = darkColorScheme(
-    primary = BiliPink,
+// 🔥🔥 [新增] 根据主题色索引生成配色方案
+private fun createDarkColorScheme(primaryColor: Color) = darkColorScheme(
+    primary = primaryColor,
     onPrimary = White,
-    secondary = BiliPinkDim,
-    background = DarkBackground,  // Scaffold 背景 (深黑)
-    surface = DarkSurface,        // Card 背景 (深灰)
-    onSurface = TextPrimaryDark,  // 主要文字 (浅白)
-    surfaceVariant = DarkSurfaceVariant, // 搜索框/次级背景
-    onSurfaceVariant = TextSecondaryDark // 次要文字
+    secondary = primaryColor.copy(alpha = 0.8f),
+    background = DarkBackground,
+    surface = DarkSurface,
+    onSurface = TextPrimaryDark,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = TextSecondaryDark
 )
 
-// 浅色模式配色 (自定义保底)
-private val LightColorScheme = lightColorScheme(
-    primary = BiliPink,
+private fun createLightColorScheme(primaryColor: Color) = lightColorScheme(
+    primary = primaryColor,
     onPrimary = White,
-    secondary = BiliPinkDim,
-    background = BiliBackground, // Scaffold 背景 (浅灰)
-    surface = White,             // Card 背景 (白)
-    onSurface = TextPrimary,     // 主要文字 (黑)
-    surfaceVariant = LightSurfaceVariant, // 搜索框背景
-    onSurfaceVariant = TextSecondary // 次要文字
+    secondary = primaryColor.copy(alpha = 0.8f),
+    background = BiliBackground,
+    surface = White,
+    onSurface = TextPrimary,
+    surfaceVariant = LightSurfaceVariant,
+    onSurfaceVariant = TextSecondary
 )
+
+// 保留默认配色作为后备
+private val DarkColorScheme = createDarkColorScheme(BiliPink)
+private val LightColorScheme = createLightColorScheme(BiliPink)
 
 @Composable
 fun PureBiliBiliTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false, // 🔥🔥 [新增] 接收动态取色参数
+    dynamicColor: Boolean = false,
+    themeColorIndex: Int = 0, // 🔥🔥 [新增] 主题色索引
     content: @Composable () -> Unit
 ) {
-    // 🔥🔥 [核心修改] 颜色选择逻辑
+    // 🔥 获取自定义主题色
+    val customPrimaryColor = ThemeColors.getOrElse(themeColorIndex) { BiliPink }
+    
     val colorScheme = when {
         // 如果开启了动态取色 且 系统版本 >= Android 12 (S)
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        // 否则使用自定义配色
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        // 🔥🔥 [新增] 使用自定义主题色
+        darkTheme -> createDarkColorScheme(customPrimaryColor)
+        else -> createLightColorScheme(customPrimaryColor)
     }
 
     MaterialTheme(

@@ -28,16 +28,16 @@ import com.android.purebilibili.data.model.response.ReplyItem
 import java.text.SimpleDateFormat
 import java.util.*
 
-// 🔥 优化后的颜色常量
-private val SubReplyBgColor = Color(0xFFF7F8FA)  // 更浅的子评论背景
-private val TextSecondaryColor = Color(0xFF9499A0)  // 统一次要文字颜色
-private val TextTertiaryColor = Color(0xFFB2B7BF)   // 更浅的辅助文字
+// 🔥 优化后的颜色常量 (使用 MaterialTheme 替代硬编码)
+// private val SubReplyBgColor = Color(0xFFF7F8FA)  // OLD
+// private val TextSecondaryColor = Color(0xFF9499A0)  // OLD
+// private val TextTertiaryColor = Color(0xFFB2B7BF)   // OLD
 
 @Composable
 fun ReplyHeader(count: Int) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
+        .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -51,7 +51,7 @@ fun ReplyHeader(count: Int) {
         Text(
             text = FormatUtils.formatStat(count.toLong()),
             fontSize = 14.sp,
-            color = TextSecondaryColor
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -87,7 +87,7 @@ fun ReplyItemView(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE5E6EB))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             )
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -98,9 +98,9 @@ fun ReplyItemView(
                         text = item.member.uname,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
-                        // 🔥 VIP 用户使用粉色，普通用户使用深灰色，不再使用 onSurface
+                        // 🔥 VIP 用户使用粉色，普通用户使用次要色适配深色模式
                         color = if (item.member.vip?.vipStatus == 1) BiliPink
-                        else Color(0xFF61666D)
+                        else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     // 🔥 优化后的等级标签
@@ -113,7 +113,7 @@ fun ReplyItemView(
                 EmojiText(
                     text = item.content.message,
                     fontSize = 15.sp,
-                    color = Color(0xFF18191C),  // 🔥 更深的正文颜色
+                    color = MaterialTheme.colorScheme.onSurface,  // 🔥 适配深色模式
                     emoteMap = localEmoteMap
                 )
 
@@ -124,14 +124,14 @@ fun ReplyItemView(
                     Text(
                         text = formatTime(item.ctime),
                         fontSize = 12.sp,
-                        color = TextSecondaryColor
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(20.dp))
 
                     Icon(
                         imageVector = Icons.Outlined.ThumbUp,
                         contentDescription = "点赞",
-                        tint = TextSecondaryColor,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
                     if (item.like > 0) {
@@ -139,7 +139,7 @@ fun ReplyItemView(
                         Text(
                             text = FormatUtils.formatStat(item.like.toLong()),
                             fontSize = 12.sp,
-                            color = TextSecondaryColor
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -148,7 +148,7 @@ fun ReplyItemView(
                     Icon(
                         imageVector = Icons.Outlined.ChatBubbleOutline,
                         contentDescription = "回复",
-                        tint = TextSecondaryColor,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
                             .size(14.dp)
                             .clickable { onSubClick(item) }
@@ -162,7 +162,7 @@ fun ReplyItemView(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(
-                                color = SubReplyBgColor,
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), // 🔥 适配深色
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .clip(RoundedCornerShape(8.dp))
@@ -171,23 +171,23 @@ fun ReplyItemView(
                     ) {
                         item.replies?.take(3)?.forEach { subReply ->
                             Row(modifier = Modifier.padding(vertical = 2.dp)) {
-                                // 🔥 子评论用户名 - 使用统一的深灰色，不再用蓝色
+                                // 🔥 子评论用户名 - 使用统一的次要色
                                 Text(
                                     text = subReply.member.uname,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color(0xFF61666D)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = ": ",
                                     fontSize = 13.sp,
-                                    color = Color(0xFF61666D)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 // 子评论内容
                                 Text(
                                     text = subReply.content.message,
                                     fontSize = 13.sp,
-                                    color = Color(0xFF18191C),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                                     maxLines = 2,
                                     lineHeight = 18.sp
                                 )
@@ -198,7 +198,7 @@ fun ReplyItemView(
                             Text(
                                 text = "共${item.rcount}条回复 >",
                                 fontSize = 13.sp,
-                                color = BiliPink,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Medium
                             )
                         }
@@ -211,7 +211,7 @@ fun ReplyItemView(
     // 🔥 分割线 - 更细更浅
     HorizontalDivider(
         thickness = 0.5.dp,
-        color = Color(0xFFE5E6EB),
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
         modifier = Modifier.padding(start = 68.dp)  // 对齐头像右边
     )
 }
@@ -229,7 +229,7 @@ fun EmojiText(
         val replyMatch = replyPattern.find(text)
         var startIndex = 0
         if (replyMatch != null) {
-            withStyle(SpanStyle(color = BiliPink, fontWeight = FontWeight.Medium)) {
+            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)) {
                 append(replyMatch.value)
             }
             startIndex = replyMatch.range.last + 1
@@ -280,11 +280,17 @@ fun EmojiText(
 // 🔥 优化后的等级标签 - 无边框，使用柔和的背景色
 @Composable
 fun LevelTag(level: Int) {
-    // 根据等级设置不同颜色
-    val (bgColor, textColor) = when {
-        level >= 6 -> Color(0xFFFFF1F1) to BiliPink
-        level >= 4 -> Color(0xFFFFF8E6) to Color(0xFFFF9500)
-        else -> Color(0xFFF4F5F7) to Color(0xFF9499A0)
+    // 根据等级设置不同颜色 (适配 DarkMode: 使用容器色)
+    val bgColor = when {
+        level >= 6 -> BiliPink.copy(alpha = 0.15f)
+        level >= 4 -> Color(0xFFFF9500).copy(alpha = 0.15f)
+        else -> MaterialTheme.colorScheme.surfaceVariant
+    }
+    
+    val textColor = when {
+        level >= 6 -> BiliPink
+        level >= 4 -> Color(0xFFFF9500)
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     
     Surface(

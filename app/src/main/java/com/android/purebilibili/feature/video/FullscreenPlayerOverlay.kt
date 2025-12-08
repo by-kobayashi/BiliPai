@@ -310,7 +310,7 @@ fun FullscreenPlayerOverlay(
                     },
                     modifier = Modifier.align(Alignment.Center),
                     shape = CircleShape,
-                    color = BiliPink.copy(alpha = 0.9f)
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -336,7 +336,7 @@ fun FullscreenPlayerOverlay(
                         LinearProgressIndicator(
                             progress = { currentProgress },
                             modifier = Modifier.weight(1f).padding(horizontal = 12.dp).height(4.dp).clip(RoundedCornerShape(2.dp)),
-                            color = BiliPink,
+                            color = MaterialTheme.colorScheme.primary,
                             trackColor = Color.White.copy(alpha = 0.3f)
                         )
                         Text(FormatUtils.formatDuration((duration / 1000).toInt()), color = Color.White, fontSize = 12.sp)

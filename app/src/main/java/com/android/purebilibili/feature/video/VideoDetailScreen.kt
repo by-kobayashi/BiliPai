@@ -226,7 +226,7 @@ fun VideoDetailScreen(
                     when (uiState) {
                         is PlayerUiState.Loading -> {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(color = BiliPink)
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                             }
                         }
 
@@ -252,7 +252,7 @@ fun VideoDetailScreen(
                                     Spacer(Modifier.height(16.dp))
                                     Button(
                                         onClick = { viewModel.loadVideo(bvid) },
-                                        colors = ButtonDefaults.buttonColors(containerColor = BiliPink)
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                                     ) { Text("重试") }
                                 }
                             }
@@ -353,7 +353,7 @@ fun VideoContentSection(
         if (replies.isEmpty() && replyCount > 0 && isRepliesLoading) {
             item {
                 Box(modifier = Modifier.fillMaxWidth().padding(64.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = BiliPink)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
         } else {
@@ -377,9 +377,9 @@ fun VideoContentSection(
                         contentAlignment = Alignment.Center
                     ) {
                         if (isRepliesLoading) {
-                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = BiliPink, strokeWidth = 2.dp)
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 2.dp)
                         } else {
-                            Text("加载更多评论", color = BiliPink)
+                            Text("加载更多评论", color = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }

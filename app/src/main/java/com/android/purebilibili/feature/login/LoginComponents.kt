@@ -120,7 +120,7 @@ fun BrandingSection() {
         // Logo
         Surface(
             shape = RoundedCornerShape(20.dp),
-            color = BiliPink,
+            color = MaterialTheme.colorScheme.primary,
             shadowElevation = 16.dp,
             modifier = Modifier.size(72.dp)
         ) {
@@ -259,9 +259,9 @@ fun QrCodeLoginContent(
             }
             is LoginState.Error -> {
                 TextButton(onClick = onRefresh) {
-                    Icon(Icons.Default.Refresh, null, tint = BiliPink)
+                    Icon(Icons.Default.Refresh, null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("刷新二维码", color = BiliPink)
+                    Text("刷新二维码", color = MaterialTheme.colorScheme.primary)
                 }
             }
             else -> {}
@@ -413,7 +413,7 @@ private fun QrCodeHint() {
             Icon(
                 Icons.Outlined.PhoneAndroid,
                 contentDescription = null,
-                tint = BiliPink,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -538,7 +538,7 @@ fun WebLoginContent(
                 Icon(
                     Icons.Outlined.Language,
                     contentDescription = null,
-                    tint = BiliPink,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(64.dp)
                 )
                 
@@ -573,7 +573,7 @@ fun WebLoginContent(
                             context.startActivity(intent)
                             hasOpenedBrowser = true
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = BiliPink),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -586,7 +586,7 @@ fun WebLoginContent(
                     Button(
                         onClick = { checkLoginStatus() },
                         enabled = !checkingLogin,
-                        colors = ButtonDefaults.buttonColors(containerColor = BiliPink),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -625,7 +625,7 @@ fun WebLoginContent(
                         )
                         context.startActivity(intent)
                     }) {
-                        Text("重新打开浏览器", color = BiliPink)
+                        Text("重新打开浏览器", color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }

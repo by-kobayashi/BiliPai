@@ -156,7 +156,7 @@ fun FrostedBottomBar(
                         // 🔥 动画过渡颜色
                         val iconColor by animateColorAsState(
                             targetValue = when {
-                                isSelected -> BiliPink
+                                isSelected -> MaterialTheme.colorScheme.primary
                                 isDark -> Color.White.copy(alpha = 0.6f)
                                 else -> Color.Black.copy(alpha = 0.55f)
                             },

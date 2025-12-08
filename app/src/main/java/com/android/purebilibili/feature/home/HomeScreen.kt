@@ -180,7 +180,7 @@ fun HomeScreen(
                 state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter),
                 containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = BiliPink
+                contentColor = MaterialTheme.colorScheme.primary
             )
             
             // 4. 🔥 底部导航栏 (视频封面动态取色)
