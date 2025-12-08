@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-purple.svg" alt="Kotlin">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-blue.svg" alt="Compose">
   <img src="https://img.shields.io/badge/Platform-Android-green.svg" alt="Android">
-  <img src="https://img.shields.io/badge/License-MIT-orange.svg" alt="License">
+  <img src="https://img.shields.io/badge/License-GPL--3.0-blue.svg" alt="License">
 </p>
 
 > **"Cheers to the Pure View."**
@@ -142,7 +142,7 @@
 
 ## 📄 许可证
 
-本项目基于 [MIT License](LICENSE) 开源。
+本项目基于 [GPL-3.0 License](LICENSE) 开源。
 
 ---
 
