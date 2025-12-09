@@ -13,3 +13,32 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# 🔥 忽略所有 build 目录
+**/build/
+
+# 🔥 忽略 Kotlin 编译器临时文件和错误日志
+*.compiler.options
+.kotlin/
+*.log
+
+# 🔥 忽略敏感配置文件
+*.keystore
+*.jks
+google-services.json
+signing.properties
+keystore.properties
+
+# 🔥 忽略其他临时文件
+*.tmp
+*.bak
+*.swp
+*~
+
+# 🔥 忽略 IDE 相关
+.idea/
+*.ipr
+*.iws
+
+# 🔥 忽略测试报告
+/reports/
