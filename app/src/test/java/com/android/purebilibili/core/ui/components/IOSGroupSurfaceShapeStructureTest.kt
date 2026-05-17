@@ -39,6 +39,19 @@ class IOSGroupSurfaceShapeStructureTest {
         assertTrue(clickableItemSource.contains("MiuixArrowPreference("))
     }
 
+    @Test
+    fun `switch item uses measured row layout so trailing switch cannot overlap text`() {
+        val source = loadSource("app/src/main/java/com/android/purebilibili/core/ui/components/iOSListComponents.kt")
+        val switchItemSource = source
+            .substringAfter("fun IOSSwitchItem(")
+            .substringBefore("@Composable\nfun IOSClickableItem")
+
+        assertTrue(switchItemSource.contains("Row("))
+        assertTrue(switchItemSource.contains("Column(modifier = Modifier.weight(1f))"))
+        assertTrue(switchItemSource.contains("Spacer(modifier = Modifier.width(rowSpec.trailingSpacingDp.dp))"))
+        assertTrue(!switchItemSource.contains("BasicComponent("))
+    }
+
     private fun loadSource(path: String): String {
         val normalizedPath = path.removePrefix("app/")
         val sourceFile = listOf(

@@ -702,41 +702,48 @@ fun IOSSwitchItem(
         return
     }
     if (uiPreset == UiPreset.MD3) {
-        BasicComponent(
-            title = title,
-            summary = subtitle,
-            enabled = enabled,
-            onClick = { onCheckedChange(!checked) },
-            insideMargin = PaddingValues(
-                horizontal = rowSpec.insideHorizontalPaddingDp.dp,
-                vertical = rowSpec.insideVerticalPaddingDp.dp
-            ),
-            startAction = {
-                if (icon != null) {
-                    Box(
-                        modifier = Modifier
-                            .size(visualSpec.iconContainerSizeDp.dp)
-                            .clip(RoundedCornerShape(visualSpec.iconCornerRadiusDp.dp))
-                            .background(effectiveIconTint.copy(alpha = visualSpec.iconBackgroundAlpha)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = effectiveIconTint,
-                            modifier = Modifier.size(visualSpec.iconGlyphSizeDp.dp)
-                        )
-                    }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(if (enabled) 1f else 0.6f)
+                .clickable(enabled = enabled) { onCheckedChange(!checked) }
+                .padding(
+                    horizontal = rowSpec.insideHorizontalPaddingDp.dp,
+                    vertical = rowSpec.insideVerticalPaddingDp.dp
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (icon != null) {
+                Box(
+                    modifier = Modifier
+                        .size(visualSpec.iconContainerSizeDp.dp)
+                        .clip(RoundedCornerShape(visualSpec.iconCornerRadiusDp.dp))
+                        .background(effectiveIconTint.copy(alpha = visualSpec.iconBackgroundAlpha)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = effectiveIconTint,
+                        modifier = Modifier.size(visualSpec.iconGlyphSizeDp.dp)
+                    )
                 }
-            },
-            endActions = {
-                AppAdaptiveSwitch(
-                    checked = checked,
-                    onCheckedChange = onCheckedChange,
-                    enabled = enabled
-                )
+                Spacer(modifier = Modifier.width(14.dp))
             }
-        )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = title, style = MaterialTheme.typography.bodyLarge, color = textColor)
+                if (subtitle != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = subtitleColor)
+                }
+            }
+            Spacer(modifier = Modifier.width(rowSpec.trailingSpacingDp.dp))
+            AppAdaptiveSwitch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                enabled = enabled
+            )
+        }
         return
     }
 
@@ -772,6 +779,7 @@ fun IOSSwitchItem(
                 Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = subtitleColor)
             }
         }
+        Spacer(modifier = Modifier.width(rowSpec.trailingSpacingDp.dp))
         AppAdaptiveSwitch(
             checked = checked,
             onCheckedChange = onCheckedChange,
