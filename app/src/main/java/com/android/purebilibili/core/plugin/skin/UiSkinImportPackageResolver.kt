@@ -243,6 +243,29 @@ object UiSkinImportPackageResolver {
         firstExisting(packageEntries, "head_bg.jpg", "head_tab_bg.jpg", "side_bg.jpg")?.let { (path, bytes) ->
             assetBytes["assets/${path.substringAfterLast("/")}"] = bytes
         }
+        firstExisting(packageEntries, "side_bg.jpg", "side_bg.png")?.let { (path, bytes) ->
+            assetBytes["assets/${path.substringAfterLast("/")}"] = bytes
+        }
+        firstExisting(packageEntries, "head_myself_bg.jpg", "head_myself_bg.png")?.let { (path, bytes) ->
+            assetBytes["assets/${path.substringAfterLast("/")}"] = bytes
+        }
+        firstExisting(
+            packageEntries,
+            "head_myself_squared_bg.jpg",
+            "head_myself_squared_bg.png"
+        )?.let { (path, bytes) ->
+            assetBytes["assets/${path.substringAfterLast("/")}"] = bytes
+        }
+        firstExisting(packageEntries, "tail_icon_channel.png", "tail_icon_channel.jpg")?.let { (path, bytes) ->
+            assetBytes["assets/${path.substringAfterLast("/")}"] = bytes
+        }
+        firstExisting(
+            packageEntries,
+            "tail_icon_selected_channel.png",
+            "tail_icon_selected_channel.jpg"
+        )?.let { (path, bytes) ->
+            assetBytes["assets/${path.substringAfterLast("/")}"] = bytes
+        }
         iconMapping.forEach { (packageStem, _) ->
             firstExisting(packageEntries, "$packageStem.png", "$packageStem.jpg")?.let { (path, bytes) ->
                 assetBytes["assets/${path.substringAfterLast("/")}"] = bytes
@@ -287,7 +310,23 @@ object UiSkinImportPackageResolver {
                         it.endsWith("side_bg_bottom.jpg")
                 },
                 topAtmosphere = assetPaths.firstOrNull {
-                    it.endsWith("head_bg.jpg") || it.endsWith("head_tab_bg.jpg") || it.endsWith("side_bg.jpg")
+                    it.endsWith("head_bg.jpg") || it.endsWith("head_tab_bg.jpg")
+                },
+                homeSideBackground = assetPaths.firstOrNull {
+                    it.endsWith("side_bg.jpg") || it.endsWith("side_bg.png")
+                },
+                homeProfileBackground = assetPaths.firstOrNull {
+                    it.endsWith("head_myself_bg.jpg") || it.endsWith("head_myself_bg.png")
+                },
+                homeProfileSquaredBackground = assetPaths.firstOrNull {
+                    it.endsWith("head_myself_squared_bg.jpg") || it.endsWith("head_myself_squared_bg.png")
+                },
+                homeChannelIcon = assetPaths.firstOrNull {
+                    it.endsWith("tail_icon_channel.png") || it.endsWith("tail_icon_channel.jpg")
+                },
+                homeChannelSelectedIcon = assetPaths.firstOrNull {
+                    it.endsWith("tail_icon_selected_channel.png") ||
+                        it.endsWith("tail_icon_selected_channel.jpg")
                 },
                 bottomBarIcons = iconPaths
             ),

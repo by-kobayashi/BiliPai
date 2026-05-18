@@ -137,6 +137,7 @@ class BottomBarUiSkinDecorationTest {
             decoration?.iconPathFor(BottomNavItem.HISTORY, selected = true)
         )
         assertEquals("/tmp/tail_icon_myself.png", decoration?.iconPathFor(BottomNavItem.PROFILE))
+        assertNull(decoration?.iconPathFor(BottomNavItem.STORY))
         assertNull(decoration?.iconPathFor(BottomNavItem.LIVE))
     }
 
@@ -202,7 +203,12 @@ class BottomBarUiSkinDecorationTest {
                 version = "1.0.0",
                 apiVersion = 1,
                 surfaces = setOf(UiSkinSurface.HOME_TOP_CHROME),
-                assets = UiSkinAssets(topAtmosphere = "assets/head_bg.jpg"),
+                assets = UiSkinAssets(
+                    topAtmosphere = "assets/head_bg.jpg",
+                    homeSideBackground = "assets/side_bg.jpg",
+                    homeProfileBackground = "assets/head_myself_bg.jpg",
+                    homeProfileSquaredBackground = "assets/head_myself_squared_bg.jpg"
+                ),
                 colors = UiSkinColorTokens(
                     topAtmosphereTint = "#DFF5FF",
                     searchCapsuleTint = "#FFFFFF"
@@ -211,7 +217,12 @@ class BottomBarUiSkinDecorationTest {
             packageSha256 = "sha",
             packagePath = "/tmp/atmosphere.bpskin",
             installedAtMillis = 42L,
-            assetFiles = mapOf("assets/head_bg.jpg" to "/tmp/head_bg.jpg")
+            assetFiles = mapOf(
+                "assets/head_bg.jpg" to "/tmp/head_bg.jpg",
+                "assets/side_bg.jpg" to "/tmp/side_bg.jpg",
+                "assets/head_myself_bg.jpg" to "/tmp/head_myself_bg.jpg",
+                "assets/head_myself_squared_bg.jpg" to "/tmp/head_myself_squared_bg.jpg"
+            )
         )
 
         val decoration = resolveHomeUiSkinDecoration(
@@ -220,6 +231,9 @@ class BottomBarUiSkinDecorationTest {
 
         assertEquals("dev.example.atmosphere", decoration?.skinId)
         assertEquals("/tmp/head_bg.jpg", decoration?.topAtmosphereImagePath)
+        assertEquals("/tmp/side_bg.jpg", decoration?.sideBackgroundImagePath)
+        assertEquals("/tmp/head_myself_bg.jpg", decoration?.profileBackgroundImagePath)
+        assertEquals("/tmp/head_myself_squared_bg.jpg", decoration?.profileSquaredBackgroundImagePath)
     }
 
     @Test

@@ -912,6 +912,7 @@ fun AppNavigation(
                             hazeState = if (isBottomBarBlurEnabled) mainHazeState else null,
                             visibleItems = visibleBottomBarItems,
                             itemColorIndices = bottomBarItemColors,
+                            uiSkinDecoration = bottomBarUiSkinDecoration,
                             onToggleSidebar = {
                                 // [Tablet] Toggle sidebar mode
                                 coroutineScope.launch {

@@ -36,6 +36,11 @@ data class UiSkinAssets(
     val bottomBarTrim: String? = null,
     val topAtmosphere: String? = null,
     val searchCapsuleBackground: String? = null,
+    val homeSideBackground: String? = null,
+    val homeProfileBackground: String? = null,
+    val homeProfileSquaredBackground: String? = null,
+    val homeChannelIcon: String? = null,
+    val homeChannelSelectedIcon: String? = null,
     val bottomBarIcons: Map<String, String> = emptyMap()
 ) {
     fun declaredPaths(): List<String> {
@@ -43,6 +48,11 @@ data class UiSkinAssets(
             bottomBarTrim?.let(::add)
             topAtmosphere?.let(::add)
             searchCapsuleBackground?.let(::add)
+            homeSideBackground?.let(::add)
+            homeProfileBackground?.let(::add)
+            homeProfileSquaredBackground?.let(::add)
+            homeChannelIcon?.let(::add)
+            homeChannelSelectedIcon?.let(::add)
             addAll(bottomBarIcons.values)
         }
     }

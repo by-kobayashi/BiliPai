@@ -406,9 +406,14 @@ class UiSkinPackageReaderTest {
         val bytes = skinPackage(
             "tail_bg.png" to pngBytes(),
             "head_bg.jpg" to jpegBytes(),
+            "side_bg.jpg" to jpegBytes(),
+            "head_myself_bg.jpg" to jpegBytes(),
+            "head_myself_squared_bg.jpg" to jpegBytes(),
             "tail_icon_main.png" to pngBytes(),
             "tail_icon_selected_main.png" to pngBytes(),
-            "tail_icon_dynamic.png" to pngBytes()
+            "tail_icon_dynamic.png" to pngBytes(),
+            "tail_icon_channel.png" to pngBytes(),
+            "tail_icon_selected_channel.png" to pngBytes()
         )
 
         val importPackage = UiSkinImportPackageResolver.resolve(bytes).getOrThrow()
@@ -419,8 +424,15 @@ class UiSkinPackageReaderTest {
         assertEquals("本地装扮资源包", preview.manifest.displayName)
         assertEquals("assets/tail_bg.png", preview.manifest.assets.bottomBarTrim)
         assertEquals("assets/head_bg.jpg", preview.manifest.assets.topAtmosphere)
+        assertEquals("assets/side_bg.jpg", preview.manifest.assets.homeSideBackground)
+        assertEquals("assets/head_myself_bg.jpg", preview.manifest.assets.homeProfileBackground)
+        assertEquals("assets/head_myself_squared_bg.jpg", preview.manifest.assets.homeProfileSquaredBackground)
         assertEquals("assets/tail_icon_main.png", preview.manifest.assets.bottomBarIcons["home"])
         assertEquals("assets/tail_icon_selected_main.png", preview.manifest.assets.bottomBarIcons["home_selected"])
+        assertEquals("assets/tail_icon_channel.png", preview.manifest.assets.homeChannelIcon)
+        assertEquals("assets/tail_icon_selected_channel.png", preview.manifest.assets.homeChannelSelectedIcon)
+        assertEquals(null, preview.manifest.assets.bottomBarIcons["story"])
+        assertEquals(null, preview.manifest.assets.bottomBarIcons["story_selected"])
         assertEquals(false, preview.manifest.communityShareable)
         assertEquals(true, preview.manifest.containsOfficialAssets)
     }

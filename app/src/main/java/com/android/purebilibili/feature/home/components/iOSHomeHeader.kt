@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance  //  状态栏亮度计算
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.zIndex
@@ -87,6 +88,7 @@ import com.android.purebilibili.core.theme.LocalAndroidNativeVariant
 import com.android.purebilibili.core.theme.LocalUiPreset
 import com.android.purebilibili.core.theme.UiPreset
 import com.android.purebilibili.navigation.resolveAppNavigationAppearance
+import java.io.File
 
 private const val HOME_HEADER_LIQUID_GLASS_ALPHA = 0.10f
 
@@ -1783,6 +1785,7 @@ fun iOSHomeHeader(
             darkTheme = isSystemInDarkTheme()
         )
     }
+    val topAtmosphereImagePath = uiSkinDecoration?.topAtmosphereImagePath
     val topTabsContent: @Composable () -> Unit = {
         HomeTopTabChrome(
             currentTabHeight = currentTabHeight,
@@ -1976,6 +1979,30 @@ fun iOSHomeHeader(
                         }
                     )
             ) {
+                if (!topAtmosphereImagePath.isNullOrBlank()) {
+                    AsyncImage(
+                        model = File(topAtmosphereImagePath),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .matchParentSize()
+                            .alpha(0.30f)
+                            .clearAndSetSemantics {}
+                    )
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        headerChromeColors.containerColor.copy(alpha = 0.52f)
+                                    )
+                                )
+                            )
+                            .clearAndSetSemantics {}
+                    )
+                }
                 if (
                     drawUnifiedTopPanelChrome &&
                     useUnifiedTopPanel &&

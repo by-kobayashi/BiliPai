@@ -52,7 +52,10 @@ data class HomeUiSkinDecoration(
     val skinId: String,
     val topAtmosphereTint: Color,
     val searchCapsuleTint: Color,
-    val topAtmosphereImagePath: String? = null
+    val topAtmosphereImagePath: String? = null,
+    val sideBackgroundImagePath: String? = null,
+    val profileBackgroundImagePath: String? = null,
+    val profileSquaredBackgroundImagePath: String? = null
 )
 
 internal fun resolveBottomBarSkinDockIconSize(): Dp = 36.dp
@@ -132,6 +135,9 @@ fun resolveHomeUiSkinDecoration(uiSkinState: UiSkinState): HomeUiSkinDecoration?
         val hasTopDecoration = UiSkinSurface.HOME_TOP_CHROME in manifest.surfaces &&
             (
                 manifest.assets.topAtmosphere != null ||
+                    manifest.assets.homeSideBackground != null ||
+                    manifest.assets.homeProfileBackground != null ||
+                    manifest.assets.homeProfileSquaredBackground != null ||
                     manifest.colors.topAtmosphereTint != null ||
                     manifest.colors.searchCapsuleTint != null
                 )
@@ -146,7 +152,12 @@ fun resolveHomeUiSkinDecoration(uiSkinState: UiSkinState): HomeUiSkinDecoration?
                 value = manifest.colors.searchCapsuleTint,
                 fallback = Color.White
             ),
-            topAtmosphereImagePath = activeSkin.assetFilePath(manifest.assets.topAtmosphere)
+            topAtmosphereImagePath = activeSkin.assetFilePath(manifest.assets.topAtmosphere),
+            sideBackgroundImagePath = activeSkin.assetFilePath(manifest.assets.homeSideBackground),
+            profileBackgroundImagePath = activeSkin.assetFilePath(manifest.assets.homeProfileBackground),
+            profileSquaredBackgroundImagePath = activeSkin.assetFilePath(
+                manifest.assets.homeProfileSquaredBackground
+            )
         )
     }
 }

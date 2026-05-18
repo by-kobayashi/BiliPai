@@ -239,6 +239,27 @@ class BottomBarMiuixStructureTest {
     }
 
     @Test
+    fun `home and sidebar consume imported skin assets without changing host-only items`() {
+        val navigationSource = loadSource("app/src/main/java/com/android/purebilibili/navigation/AppNavigation.kt")
+        val sidebarSource = loadSource("app/src/main/java/com/android/purebilibili/feature/home/components/SideBar.kt")
+        val headerSource = loadSource("app/src/main/java/com/android/purebilibili/feature/home/components/iOSHomeHeader.kt")
+
+        val sideBarCallSource = navigationSource
+            .substringAfter("FrostedSideBar(")
+            .substringBefore(")\n                    }")
+        val sideBarBodySource = sidebarSource
+            .substringAfter("fun FrostedSideBar(")
+
+        assertTrue(sideBarCallSource.contains("uiSkinDecoration = bottomBarUiSkinDecoration"))
+        assertTrue(sideBarBodySource.contains("uiSkinDecoration: BottomBarUiSkinDecoration? = null"))
+        assertTrue(sideBarBodySource.contains("val skinIconPath = uiSkinDecoration?.iconPathFor(item, selected = isSelected)"))
+        assertTrue(sideBarBodySource.contains("BottomBarSkinIcon("))
+        assertTrue(headerSource.contains("val topAtmosphereImagePath = uiSkinDecoration?.topAtmosphereImagePath"))
+        assertTrue(headerSource.contains("model = File(topAtmosphereImagePath)"))
+        assertTrue(headerSource.contains("ContentScale.Crop"))
+    }
+
+    @Test
     fun `bottom bar nonlinear search motion does not change indicator dispersion or item scale`() {
         val source = loadSource("app/src/main/java/com/android/purebilibili/feature/home/components/BottomBar.kt")
         val refractionProfileSource = source
