@@ -143,6 +143,7 @@ import com.android.purebilibili.feature.video.subtitle.SubtitleDisplayMode
 import com.android.purebilibili.feature.video.subtitle.resolveSubtitleDisplayModePreference
 import com.android.purebilibili.feature.video.progress.PbpProgressData
 import com.android.purebilibili.feature.video.usecase.playPlayerFromUserAction
+import com.android.purebilibili.core.ui.transition.shouldEnableVideoPlayerShellSharedTransition
 import com.android.purebilibili.feature.video.usecase.seekPlayerFromUserAction
 import com.android.purebilibili.feature.video.policy.reduceVideoDetailPostScroll
 import com.android.purebilibili.feature.video.policy.reduceVideoDetailPreScroll
@@ -603,6 +604,7 @@ private fun PortraitInlineVideoPlayerHost(
     audioQualityPreference: Int,
     onNavigateToAudioMode: () -> Unit,
     forceCoverOnly: Boolean,
+    playerShellSharedBoundsActive: Boolean,
     allowLivePlayerSharedElement: Boolean,
     suppressSubtitleOverlay: Boolean,
     subtitleDisplayModePreferenceOverride: SubtitleDisplayMode?,
@@ -669,6 +671,7 @@ private fun PortraitInlineVideoPlayerHost(
             onSaveCover = { viewModel.saveCover(context) },
             onDownloadAudio = { viewModel.downloadAudio(context) },
             forceCoverOnly = forceCoverOnly,
+            playerShellSharedBoundsActive = playerShellSharedBoundsActive,
             allowLivePlayerSharedElement = allowLivePlayerSharedElement,
             suppressSubtitleOverlay = suppressSubtitleOverlay,
             subtitleDisplayModePreferenceOverride = subtitleDisplayModePreferenceOverride,
@@ -2712,13 +2715,13 @@ fun VideoDetailScreen(
                     val animatedVisibilityScope = LocalAnimatedVisibilityScope.current
                     
                     //  为播放器容器添加共享元素标记（受开关控制）
-                    val playerContainerModifier = if (
-                        shouldEnableVideoCoverSharedTransition(
-                            transitionEnabled = transitionEnabled,
-                            hasSharedTransitionScope = sharedTransitionScope != null,
-                            hasAnimatedVisibilityScope = animatedVisibilityScope != null
-                        ) && !forceCoverOnlyForReturn
-                    ) {
+                    val playerShellSharedBoundsActive = shouldEnableVideoPlayerShellSharedTransition(
+                        transitionEnabled = transitionEnabled,
+                        hasSharedTransitionScope = sharedTransitionScope != null,
+                        hasAnimatedVisibilityScope = animatedVisibilityScope != null,
+                        forceCoverOnlyOnReturn = forceCoverOnlyForReturn
+                    )
+                    val playerContainerModifier = if (playerShellSharedBoundsActive) {
                         with(requireNotNull(sharedTransitionScope)) {
                             Modifier
                                 .sharedBounds(
@@ -2812,6 +2815,7 @@ fun VideoDetailScreen(
                                 onNavigateToAudioMode()
                             },
                             forceCoverOnly = forceCoverOnlyForReturn,
+                            playerShellSharedBoundsActive = playerShellSharedBoundsActive,
                             allowLivePlayerSharedElement = true,
                             suppressSubtitleOverlay = shouldSuppressSubtitleOverlay,
                             subtitleDisplayModePreferenceOverride = subtitleDisplayModeOverride,

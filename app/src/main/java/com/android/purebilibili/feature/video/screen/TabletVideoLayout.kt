@@ -58,6 +58,7 @@ import androidx.compose.foundation.shape.CircleShape
 import com.android.purebilibili.core.ui.LocalSharedTransitionScope
 import com.android.purebilibili.core.ui.LocalAnimatedVisibilityScope
 import com.android.purebilibili.core.ui.transition.VIDEO_SHARED_COVER_ASPECT_RATIO
+import com.android.purebilibili.core.ui.transition.shouldEnableVideoPlayerShellSharedTransition
 
 /**
  * 🖥️ 平板端视频详情页布局
@@ -153,17 +154,18 @@ fun TabletVideoLayout(
                 val animatedVisibilityScope = LocalAnimatedVisibilityScope.current
                 
                 //  为播放器容器添加共享元素标记（受开关控制）
-                val playerContainerModifier = if (
-                    transitionEnabled &&
-                    sharedTransitionScope != null &&
-                    animatedVisibilityScope != null &&
-                    !forceCoverOnlyOnReturn
-                ) {
-                    with(sharedTransitionScope) {
+                val playerShellSharedBoundsActive = shouldEnableVideoPlayerShellSharedTransition(
+                    transitionEnabled = transitionEnabled,
+                    hasSharedTransitionScope = sharedTransitionScope != null,
+                    hasAnimatedVisibilityScope = animatedVisibilityScope != null,
+                    forceCoverOnlyOnReturn = forceCoverOnlyOnReturn
+                )
+                val playerContainerModifier = if (playerShellSharedBoundsActive) {
+                    with(requireNotNull(sharedTransitionScope)) {
                         Modifier
                             .sharedBounds(
                                 sharedContentState = rememberSharedContentState(key = "video_cover_$bvid"),
-                                animatedVisibilityScope = animatedVisibilityScope,
+                                animatedVisibilityScope = requireNotNull(animatedVisibilityScope),
                                 boundsTransform = { _, _ -> com.android.purebilibili.core.theme.AnimationSpecs.BiliPaiSpringSpec },
                                 clipInOverlayDuringTransition = OverlayClip(
                                     RoundedCornerShape(12.dp)
@@ -231,7 +233,8 @@ fun TabletVideoLayout(
                             onDownloadAudio = { viewModel.downloadAudio(context) },
                             // 🔁 [新增] 播放模式
                             currentPlayMode = currentPlayMode,
-                            onPlayModeClick = onPlayModeClick
+                            onPlayModeClick = onPlayModeClick,
+                            playerShellSharedBoundsActive = playerShellSharedBoundsActive
                         )
                     }
                 }

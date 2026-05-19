@@ -50,4 +50,16 @@ class VideoSharedTransitionPolicyTest {
     fun sharedCoverAspectRatio_defaultsToHomeCardSixteenByTen() {
         assertEquals(1.6f, VIDEO_SHARED_COVER_ASPECT_RATIO, 0.0001f)
     }
+
+    @Test
+    fun playerShellSharedTransition_staysEnabledDuringReturnCoverTakeover() {
+        assertTrue(
+            shouldEnableVideoPlayerShellSharedTransition(
+                transitionEnabled = true,
+                hasSharedTransitionScope = true,
+                hasAnimatedVisibilityScope = true,
+                forceCoverOnlyOnReturn = true
+            )
+        )
+    }
 }

@@ -179,8 +179,20 @@ fun CinematicVideoCard(
             }
     ) {
         // 卡片主体容器
+        val cardShellModifier = if (coverSharedEnabled) {
+            with(requireNotNull(sharedTransitionScope)) {
+                Modifier.sharedBounds(
+                    sharedContentState = rememberSharedContentState(key = "video_cover_${video.bvid}"),
+                    animatedVisibilityScope = requireNotNull(animatedVisibilityScope),
+                    boundsTransform = { _, _ -> com.android.purebilibili.core.theme.AnimationSpecs.BiliPaiSpringSpec },
+                    clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(cardCornerRadius))
+                )
+            }
+        } else {
+            Modifier
+        }
         Box(
-            modifier = Modifier
+            modifier = cardShellModifier
                 .fillMaxWidth()
                 .shadow(
                     elevation = 8.dp, // 标准阴影
@@ -207,18 +219,7 @@ fun CinematicVideoCard(
             val coverModifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(VIDEO_SHARED_COVER_ASPECT_RATIO) // 统一共享比例
-            
-            // 共享元素: 封面
-            val finalCoverModifier = if (coverSharedEnabled) {
-                with(requireNotNull(sharedTransitionScope)) {
-                    coverModifier.sharedBounds(
-                        sharedContentState = rememberSharedContentState(key = "video_cover_${video.bvid}"),
-                        animatedVisibilityScope = requireNotNull(animatedVisibilityScope),
-                        boundsTransform = { _, _ -> com.android.purebilibili.core.theme.AnimationSpecs.BiliPaiSpringSpec },
-                        clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(cardCornerRadius))
-                    )
-                }
-            } else coverModifier
+            val finalCoverModifier = coverModifier
 
             Box(modifier = Modifier.clip(RoundedCornerShape(cardCornerRadius))) {
                  AsyncImage(
