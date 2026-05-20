@@ -37,6 +37,15 @@ class VideoDetailScreenMethodSizeStructureTest {
         assertTrue(playerContainerSource.contains("homeSharedTransitionCornerSpec.endCornerDp.dp"))
     }
 
+    @Test
+    fun videoDetailShellUsesHomeEnterSettleModifierWithoutReEnablingContentReveal() {
+        val source = loadSource("app/src/main/java/com/android/purebilibili/feature/video/screen/VideoDetailScreen.kt")
+
+        assertTrue(source.contains("resolveVideoDetailEnterSettleSpec("))
+        assertTrue(source.contains(".videoDetailEnterSettle("))
+        assertTrue(source.contains("resolveVideoDetailContentRevealMotion("))
+    }
+
     private fun loadSource(path: String): String {
         val candidates = listOf(
             File(path),

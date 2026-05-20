@@ -167,6 +167,8 @@ import com.android.purebilibili.core.ui.transition.resolveHomeVideoSharedTransit
 import com.android.purebilibili.core.ui.transition.resolveHomeVideoSharedTransitionMotionSpec
 import com.android.purebilibili.core.ui.transition.resolveVideoCardSharedTransitionEasing
 import com.android.purebilibili.core.ui.transition.resolveVideoDetailContentRevealMotion
+import com.android.purebilibili.core.ui.transition.resolveVideoDetailEnterSettleSpec
+import com.android.purebilibili.core.ui.transition.videoDetailEnterSettle
 import com.android.purebilibili.core.ui.rememberAppChevronUpIcon
 import com.android.purebilibili.core.ui.rememberAppCollectionIcon
 import com.android.purebilibili.core.ui.rememberAppDownloadIcon
@@ -1453,12 +1455,22 @@ fun VideoDetailScreen(
         hasSharedTransitionScope = rootSharedTransitionScope != null,
         hasAnimatedVisibilityScope = rootAnimatedVisibilityScope != null
     ) && !sourceRouteForSharedElement.isNullOrBlank()
+    val detailEnterSettleSpec = remember(
+        sourceRouteForSharedElement,
+        transitionEnabled,
+        detailShellSharedBoundsEnabled
+    ) {
+        resolveVideoDetailEnterSettleSpec(
+            sourceRoute = sourceRouteForSharedElement,
+            transitionEnabled = transitionEnabled && detailShellSharedBoundsEnabled
+        )
+    }
     val routeSheetFrame = rememberVideoDetailRouteSheetFrame(
         motion = routeSheetMotion,
         isExitTransitionInProgress = isExitTransitionInProgress,
         sharedBoundsActive = detailShellSharedBoundsEnabled
     )
-    val detailShellModifier = if (detailShellSharedBoundsEnabled) {
+    val detailShellSharedBoundsModifier = if (detailShellSharedBoundsEnabled) {
         with(requireNotNull(rootSharedTransitionScope)) {
             Modifier.sharedBounds(
                 sharedContentState = rememberSharedContentState(
@@ -1488,6 +1500,10 @@ fun VideoDetailScreen(
     } else {
         Modifier
     }
+    val detailShellModifier = detailShellSharedBoundsModifier.videoDetailEnterSettle(
+        settleSpec = detailEnterSettleSpec,
+        settleDelayMillis = homeSharedTransitionMotionSpec.durationMillis
+    )
     val coverTakeoverBeforeBackDelayMillis = remember {
         resolveCoverTakeoverDelayBeforeBackNavigationMillis()
     }
