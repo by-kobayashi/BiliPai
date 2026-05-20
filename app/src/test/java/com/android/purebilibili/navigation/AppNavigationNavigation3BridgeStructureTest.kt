@@ -2,6 +2,7 @@ package com.android.purebilibili.navigation
 
 import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class AppNavigationNavigation3BridgeStructureTest {
@@ -33,6 +34,8 @@ class AppNavigationNavigation3BridgeStructureTest {
         assertTrue(source.contains("navigation3ReturnSession"))
         assertTrue(source.contains("resolveBiliPaiNavSourceMetadata"))
         assertTrue(source.contains("navigation3ReturnSession.markReturning"))
+        assertTrue(source.contains("navigation3ReturnSession.isQuickReturnFromDetail"))
+        assertFalse(source.contains("isQuickReturnFromDetail = CardPositionManager.isQuickReturnFromDetail"))
     }
 
     @Test

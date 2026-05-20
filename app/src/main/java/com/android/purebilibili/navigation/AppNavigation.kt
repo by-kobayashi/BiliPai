@@ -862,7 +862,7 @@ fun AppNavigation(
         val isBottomBarDestination =
             activeBottomTabRoute != ScreenRoutes.Story.route && activeBottomTabRoute in visibleBottomBarRoutes
         val shouldDeferBottomBarReveal = shouldDeferBottomBarRevealOnVideoReturn(
-            isReturningFromDetail = CardPositionManager.isReturningFromDetail,
+            isReturningFromDetail = navigation3ReturnSession.isReturningFromDetail,
             currentRoute = currentRoute
         )
         val showBottomBar = isBottomBarDestination &&
@@ -1256,7 +1256,7 @@ fun AppNavigation(
                         targetRoute = ScreenRoutes.Home.route,
                         cardTransitionEnabled = cardTransitionEnabled,
                         predictiveBackAnimationEnabled = predictiveBackAnimationEnabled,
-                        isQuickReturnFromDetail = CardPositionManager.isQuickReturnFromDetail,
+                        isQuickReturnFromDetail = navigation3ReturnSession.isQuickReturnFromDetail,
                         sharedTransitionReady = sharedTransitionReady,
                         isTabletLayout = isTabletLayout,
                         allowNoOpSharedElement = true,
@@ -1291,7 +1291,7 @@ fun AppNavigation(
                                 )
                             } else if (
                                 shouldUseClassicBackRouteMotion(backRouteMotionMode) &&
-                                CardPositionManager.isQuickReturnFromDetail
+                                navigation3ReturnSession.isQuickReturnFromDetail
                             ) {
                                 fadeIn(
                                     animationSpec = tween(
@@ -1773,7 +1773,7 @@ fun AppNavigation(
                         isTabletLayout = isTabletLayout,
                         fromRoute = fromRoute,
                         targetRoute = targetRoute,
-                        isQuickReturnFromDetail = CardPositionManager.isQuickReturnFromDetail,
+                        isQuickReturnFromDetail = navigation3ReturnSession.isQuickReturnFromDetail,
                         sharedTransitionReady = sharedTransitionReady,
                         isSingleColumnCard = CardPositionManager.isSingleColumnCard,
                         lastClickedCardCenterX = CardPositionManager.lastClickedCardCenter?.x
@@ -1847,31 +1847,31 @@ fun AppNavigation(
                 if (useNoOpVideoToVideo) {
                     EnterTransition.None
                 } else if (shouldUseClassicBackRouteMotion(backRouteMotionMode)) {
-                     if (CardPositionManager.isQuickReturnFromDetail) {
-                         val quickReturnSharedTransitionReady =
-                             CardPositionManager.lastClickedCardBounds != null &&
-                                 CardPositionManager.isCardFullyVisible
-                         if (shouldUseNoOpRouteTransitionOnQuickReturn(
-                                 cardTransitionEnabled = cardTransitionEnabled,
-                                 isQuickReturnFromDetail = CardPositionManager.isQuickReturnFromDetail,
-                                 sharedTransitionReady = quickReturnSharedTransitionReady
-                             )
-                         ) {
-                             EnterTransition.None
-                         } else {
-                             // 快速返回但共享元素未就绪时，最小化淡入
-                             fadeIn(
-                                 animationSpec = tween(
-                                     durationMillis = navMotionSpec.fallbackFadeDurationMillis,
-                                     easing = IOS_RETURN_EASING
-                                 ),
-                                 initialAlpha = 0.98f
-                             )
-                         }
-                     } else {
-                         // 非快速返回：路由层静默，让共享元素独占
-                         EnterTransition.None
-                     }
+                    if (navigation3ReturnSession.isQuickReturnFromDetail) {
+                        val quickReturnSharedTransitionReady =
+                            CardPositionManager.lastClickedCardBounds != null &&
+                                CardPositionManager.isCardFullyVisible
+                        if (shouldUseNoOpRouteTransitionOnQuickReturn(
+                                cardTransitionEnabled = cardTransitionEnabled,
+                                isQuickReturnFromDetail = navigation3ReturnSession.isQuickReturnFromDetail,
+                                sharedTransitionReady = quickReturnSharedTransitionReady
+                            )
+                        ) {
+                            EnterTransition.None
+                        } else {
+                            // 快速返回但共享元素未就绪时，最小化淡入
+                            fadeIn(
+                                animationSpec = tween(
+                                    durationMillis = navMotionSpec.fallbackFadeDurationMillis,
+                                    easing = IOS_RETURN_EASING
+                                ),
+                                initialAlpha = 0.98f
+                            )
+                        }
+                    } else {
+                        // 非快速返回：路由层静默，让共享元素独占
+                        EnterTransition.None
+                    }
                 } else {
                     slideEnterRight(navMotionSpec)
                 }
