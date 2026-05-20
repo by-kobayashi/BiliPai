@@ -121,6 +121,7 @@ import com.android.purebilibili.feature.video.ui.components.PagesSelector
 // Imports for moved classes
 import com.android.purebilibili.feature.video.viewmodel.PlayerViewModel
 import com.android.purebilibili.feature.video.viewmodel.PlayerUiState
+import com.android.purebilibili.feature.video.viewmodel.QualitySwitchFailureDialogState
 import com.android.purebilibili.feature.video.viewmodel.CommentUiState
 import com.android.purebilibili.feature.video.viewmodel.VideoCommentViewModel
 import com.android.purebilibili.feature.video.state.VideoPlayerState
@@ -152,6 +153,7 @@ import io.github.alexzhirkevich.cupertino.CupertinoActivityIndicator
 import io.github.alexzhirkevich.cupertino.icons.CupertinoIcons
 import io.github.alexzhirkevich.cupertino.icons.outlined.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 //  共享元素过渡
@@ -1355,7 +1357,7 @@ fun VideoDetailScreen(
         if (window != null) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }
-        
+
         onDispose {
             pendingTopBarActionRunnable?.let(topBarActionHandler::removeCallbacks)
             pendingTopBarActionRunnable = null
@@ -3210,7 +3212,7 @@ fun VideoDetailScreen(
             useOfficialInlinePortraitDetailExperience = useOfficialInlinePortraitDetailExperience,
             hasPlayableState = uiState is PlayerUiState.Success || uiState is PlayerUiState.Loading
         )
-        
+
         // 缓存上一个成功状态以在 Loading 时使用
         var cachedSuccess by remember { mutableStateOf<PlayerUiState.Success?>(null) }
         LaunchedEffect(uiState) {
@@ -3400,96 +3402,7 @@ fun VideoDetailScreen(
             onConfirm = { count, alsoLike -> viewModel.doCoin(count, alsoLike) }
         )
 
-        val followGroupDialogVisible by viewModel.followGroupDialogVisible.collectAsState(context = kotlin.coroutines.EmptyCoroutineContext)
-        val followGroupTags by viewModel.followGroupTags.collectAsState(context = kotlin.coroutines.EmptyCoroutineContext)
-        val followGroupSelectedTagIds by viewModel.followGroupSelectedTagIds.collectAsState(context = kotlin.coroutines.EmptyCoroutineContext)
-        val isFollowGroupsLoading by viewModel.isFollowGroupsLoading.collectAsState(context = kotlin.coroutines.EmptyCoroutineContext)
-        val isSavingFollowGroups by viewModel.isSavingFollowGroups.collectAsState(context = kotlin.coroutines.EmptyCoroutineContext)
-        if (followGroupDialogVisible) {
-            AlertDialog(
-                onDismissRequest = {
-                    if (!isSavingFollowGroups) viewModel.dismissFollowGroupDialog()
-                },
-                title = { Text("设置关注分组") },
-                text = {
-                    if (isFollowGroupsLoading) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CupertinoActivityIndicator()
-                        }
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 320.dp)
-                                .verticalScroll(rememberScrollState())
-                        ) {
-                            if (followGroupTags.isEmpty()) {
-                                Text(
-                                    text = "暂无可用分组（不勾选即为默认分组）",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 13.sp
-                                )
-                            } else {
-                                followGroupTags.forEach { tag ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable { viewModel.toggleFollowGroupSelection(tag.tagid) }
-                                            .padding(vertical = 6.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Checkbox(
-                                            checked = followGroupSelectedTagIds.contains(tag.tagid),
-                                            onCheckedChange = { viewModel.toggleFollowGroupSelection(tag.tagid) }
-                                        )
-                                        Text(
-                                            text = "${tag.name} (${tag.count})",
-                                            fontSize = 14.sp,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                }
-                            }
-                            Text(
-                                text = "可多选，确定后覆盖原分组设置。",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 12.sp,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = { viewModel.saveFollowGroupSelection() },
-                        enabled = !isFollowGroupsLoading && !isSavingFollowGroups
-                    ) {
-                        if (isSavingFollowGroups) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        } else {
-                            Text("确定")
-                        }
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { viewModel.dismissFollowGroupDialog() },
-                        enabled = !isSavingFollowGroups
-                    ) {
-                        Text("取消")
-                    }
-                }
-            )
-        }
+        VideoDetailFollowGroupDialog(viewModel = viewModel)
 
         ExternalPlaylistQueueSheet(
             visible = shouldShowExternalPlaylistQueueBar && showExternalPlaylistQueueSheet,
@@ -3509,74 +3422,10 @@ fun VideoDetailScreen(
             }
         )
         
-        // [新增] 播放完成选择对话框
-        val showPlaybackEndedDialog by viewModel.showPlaybackEndedDialog.collectAsState(context = kotlin.coroutines.EmptyCoroutineContext)
-        if (showPlaybackEndedDialog) {
-            androidx.compose.ui.window.Dialog(
-                onDismissRequest = { viewModel.dismissPlaybackEndedDialog() }
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 8.dp
-                ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(
-                            text = "播放完成",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        
-                        Text(
-                            text = "选择接下来的操作",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        
-                        // 重播按钮
-                        Button(
-                            onClick = {
-                                viewModel.dismissPlaybackEndedDialog()
-                                playerState.player.seekTo(0)
-                                playPlayerFromUserAction(playerState.player)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        ) {
-                            Text("🔄 重播当前视频")
-                        }
-                        
-                        // 播放下一个按钮
-                        Button(
-                            onClick = {
-                                viewModel.dismissPlaybackEndedDialog()
-                                viewModel.playNextRecommended()
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Text("▶️ 播放下一个视频")
-                        }
-                        
-                        // 关闭按钮
-                        TextButton(
-                            onClick = { viewModel.dismissPlaybackEndedDialog() }
-                        ) {
-                            Text("暂不操作")
-                        }
-                    }
-                }
-            }
-        }
+        VideoDetailPlaybackEndedDialog(
+            viewModel = viewModel,
+            player = playerState.player
+        )
         
         //  [新增] 弹幕发送对话框
         val showDanmakuDialog by viewModel.showDanmakuDialog.collectAsState(context = kotlin.coroutines.EmptyCoroutineContext)
@@ -4044,26 +3893,241 @@ fun VideoDetailScreen(
             )
         }
 
-        LaunchedEffect(
-            qualitySwitchFailureDialog?.requestedQualityId,
-            qualitySwitchFailureDialogEnabled,
-            qualitySwitchFailureDialogOnceEnabled,
-            qualitySwitchFailureDialogShown
-        ) {
-            val dialog = qualitySwitchFailureDialog ?: return@LaunchedEffect
-            val shouldSuppressDialog = !qualitySwitchFailureDialogEnabled ||
-                (qualitySwitchFailureDialogOnceEnabled && qualitySwitchFailureDialogShown)
-            if (shouldSuppressDialog) {
-                viewModel.dismissQualitySwitchFailureDialog()
+        VideoDetailQualitySwitchFailureDialog(
+            context = context,
+            viewModel = viewModel,
+            qualitySwitchFailureDialog = qualitySwitchFailureDialog,
+            qualitySwitchFailureDialogEnabled = qualitySwitchFailureDialogEnabled,
+            qualitySwitchFailureDialogOnceEnabled = qualitySwitchFailureDialogOnceEnabled,
+            qualitySwitchFailureDialogShown = qualitySwitchFailureDialogShown,
+            playerDiagnosticLoggingEnabled = playerDiagnosticLoggingEnabled,
+            qualitySwitchDialogScope = qualitySwitchDialogScope
+        )
+
+        VideoDetailDanmakuContextMenu(
+            context = context,
+            viewModel = viewModel,
+            activeDanmakuBlockRulesRaw = activeDanmakuBlockRulesRaw,
+            activeDanmakuScope = activeDanmakuScope,
+            sortPreferenceScope = sortPreferenceScope
+        )
+
+        // 🔗 绑定弹幕点击监听器
+        LaunchedEffect(danmakuManager) {
+            danmakuManager.setOnDanmakuClickListener { text, dmid, userHash, isSelf ->
+                android.util.Log.d("VideoDetailScreen", "👆 Danmaku clicked: $text")
+                viewModel.showDanmakuMenu(dmid, text, userHash, isSelf)
             }
         }
+    }
+}
 
-        qualitySwitchFailureDialog
-            ?.takeIf {
-                qualitySwitchFailureDialogEnabled &&
-                    !(qualitySwitchFailureDialogOnceEnabled && qualitySwitchFailureDialogShown)
+@Composable
+private fun VideoDetailFollowGroupDialog(
+    viewModel: PlayerViewModel
+) {
+    val followGroupDialogVisible by viewModel.followGroupDialogVisible.collectAsState(
+        context = kotlin.coroutines.EmptyCoroutineContext
+    )
+    val followGroupTags by viewModel.followGroupTags.collectAsState(
+        context = kotlin.coroutines.EmptyCoroutineContext
+    )
+    val followGroupSelectedTagIds by viewModel.followGroupSelectedTagIds.collectAsState(
+        context = kotlin.coroutines.EmptyCoroutineContext
+    )
+    val isFollowGroupsLoading by viewModel.isFollowGroupsLoading.collectAsState(
+        context = kotlin.coroutines.EmptyCoroutineContext
+    )
+    val isSavingFollowGroups by viewModel.isSavingFollowGroups.collectAsState(
+        context = kotlin.coroutines.EmptyCoroutineContext
+    )
+    if (!followGroupDialogVisible) return
+
+    AlertDialog(
+        onDismissRequest = {
+            if (!isSavingFollowGroups) viewModel.dismissFollowGroupDialog()
+        },
+        title = { Text("设置关注分组") },
+        text = {
+            if (isFollowGroupsLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CupertinoActivityIndicator()
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 320.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    if (followGroupTags.isEmpty()) {
+                        Text(
+                            text = "暂无可用分组（不勾选即为默认分组）",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 13.sp
+                        )
+                    } else {
+                        followGroupTags.forEach { tag ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { viewModel.toggleFollowGroupSelection(tag.tagid) }
+                                    .padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = followGroupSelectedTagIds.contains(tag.tagid),
+                                    onCheckedChange = { viewModel.toggleFollowGroupSelection(tag.tagid) }
+                                )
+                                Text(
+                                    text = "${tag.name} (${tag.count})",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        text = "可多选，确定后覆盖原分组设置。",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
             }
-            ?.let { dialog ->
+        },
+        confirmButton = {
+            Button(
+                onClick = { viewModel.saveFollowGroupSelection() },
+                enabled = !isFollowGroupsLoading && !isSavingFollowGroups
+            ) {
+                if (isSavingFollowGroups) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("确定")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { viewModel.dismissFollowGroupDialog() },
+                enabled = !isSavingFollowGroups
+            ) {
+                Text("取消")
+            }
+        }
+    )
+}
+
+@Composable
+private fun VideoDetailPlaybackEndedDialog(
+    viewModel: PlayerViewModel,
+    player: Player
+) {
+    val showPlaybackEndedDialog by viewModel.showPlaybackEndedDialog.collectAsState(
+        context = kotlin.coroutines.EmptyCoroutineContext
+    )
+    if (!showPlaybackEndedDialog) return
+
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = { viewModel.dismissPlaybackEndedDialog() }
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "播放完成",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "选择接下来的操作",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Button(
+                    onClick = {
+                        viewModel.dismissPlaybackEndedDialog()
+                        player.seekTo(0)
+                        playPlayerFromUserAction(player)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                ) {
+                    Text("🔄 重播当前视频")
+                }
+                Button(
+                    onClick = {
+                        viewModel.dismissPlaybackEndedDialog()
+                        viewModel.playNextRecommended()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text("▶️ 播放下一个视频")
+                }
+                TextButton(
+                    onClick = { viewModel.dismissPlaybackEndedDialog() }
+                ) {
+                    Text("暂不操作")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VideoDetailQualitySwitchFailureDialog(
+    context: Context,
+    viewModel: PlayerViewModel,
+    qualitySwitchFailureDialog: QualitySwitchFailureDialogState?,
+    qualitySwitchFailureDialogEnabled: Boolean,
+    qualitySwitchFailureDialogOnceEnabled: Boolean,
+    qualitySwitchFailureDialogShown: Boolean,
+    playerDiagnosticLoggingEnabled: Boolean,
+    qualitySwitchDialogScope: CoroutineScope
+) {
+    LaunchedEffect(
+        qualitySwitchFailureDialog?.requestedQualityId,
+        qualitySwitchFailureDialogEnabled,
+        qualitySwitchFailureDialogOnceEnabled,
+        qualitySwitchFailureDialogShown
+    ) {
+        val dialog = qualitySwitchFailureDialog ?: return@LaunchedEffect
+        val shouldSuppressDialog = !qualitySwitchFailureDialogEnabled ||
+            (qualitySwitchFailureDialogOnceEnabled && qualitySwitchFailureDialogShown)
+        if (shouldSuppressDialog) {
+            viewModel.dismissQualitySwitchFailureDialog()
+        }
+    }
+
+    qualitySwitchFailureDialog
+        ?.takeIf {
+            qualitySwitchFailureDialogEnabled &&
+                !(qualitySwitchFailureDialogOnceEnabled && qualitySwitchFailureDialogShown)
+        }
+        ?.let { dialog ->
             fun dismissQualitySwitchFailureDialogAfterUserChoice() {
                 qualitySwitchDialogScope.launch {
                     if (qualitySwitchFailureDialogOnceEnabled) {
@@ -4142,82 +4206,82 @@ fun VideoDetailScreen(
                 }
             )
         }
+}
 
-        // 💬 弹幕上下文菜单
-        val danmakuMenuState by viewModel.danmakuMenuState.collectAsState(context = kotlin.coroutines.EmptyCoroutineContext)
-        
-        if (danmakuMenuState.visible) {
-            DanmakuContextMenu(
-                text = danmakuMenuState.text,
-                onDismiss = { viewModel.hideDanmakuMenu() },
-                onLike = { viewModel.likeDanmaku(danmakuMenuState.dmid) },
-                onRecall = { viewModel.recallDanmaku(danmakuMenuState.dmid) },
-                onReport = { reason -> 
-                    viewModel.reportDanmaku(danmakuMenuState.dmid, reason)
-                },
-                voteCount = danmakuMenuState.voteCount,
-                hasLiked = danmakuMenuState.hasLiked,
-                voteLoading = danmakuMenuState.voteLoading,
-                canVote = danmakuMenuState.canVote,
-                canRecall = danmakuMenuState.isSelf,
-                canBlockKeyword = danmakuMenuState.text.isNotBlank(),
-                onBlockKeyword = {
-                    val updatedRules = appendDanmakuKeywordBlockRule(
-                        rawRules = activeDanmakuBlockRulesRaw,
-                        keyword = danmakuMenuState.text
-                    )
-                    val changed = updatedRules != activeDanmakuBlockRulesRaw
-                    sortPreferenceScope.launch {
-                        com.android.purebilibili.core.store.SettingsManager.setDanmakuBlockRulesRaw(
-                            context,
-                            updatedRules,
-                            activeDanmakuScope
-                        )
-                    }
-                    viewModel.toast(
-                        resolveDanmakuBlockActionFeedbackMessage(
-                            target = DanmakuBlockActionTarget.KEYWORD,
-                            changed = changed
-                        )
-                    )
-                },
-                canBlockUser = danmakuMenuState.userHash.isNotBlank(),
-                onBlockUser = {
-                    val userHash = danmakuMenuState.userHash
-                    if (userHash.isBlank()) {
-                        viewModel.toast("该弹幕缺少发送者标识")
-                    } else {
-                        val updatedRules = appendDanmakuUserHashBlockRule(
-                            rawRules = activeDanmakuBlockRulesRaw,
-                            userHash = userHash
-                        )
-                        val changed = updatedRules != activeDanmakuBlockRulesRaw
-                        sortPreferenceScope.launch {
-                            com.android.purebilibili.core.store.SettingsManager.setDanmakuBlockRulesRaw(
-                                context,
-                                updatedRules,
-                                activeDanmakuScope
-                            )
-                        }
-                        viewModel.toast(
-                            resolveDanmakuBlockActionFeedbackMessage(
-                                target = DanmakuBlockActionTarget.USER,
-                                changed = changed
-                            )
-                        )
-                    }
-                }
+@Composable
+private fun VideoDetailDanmakuContextMenu(
+    context: Context,
+    viewModel: PlayerViewModel,
+    activeDanmakuBlockRulesRaw: String,
+    activeDanmakuScope: com.android.purebilibili.core.store.DanmakuSettingsScope,
+    sortPreferenceScope: CoroutineScope
+) {
+    val danmakuMenuState by viewModel.danmakuMenuState.collectAsState(
+        context = kotlin.coroutines.EmptyCoroutineContext
+    )
+    if (!danmakuMenuState.visible) return
+
+    DanmakuContextMenu(
+        text = danmakuMenuState.text,
+        onDismiss = { viewModel.hideDanmakuMenu() },
+        onLike = { viewModel.likeDanmaku(danmakuMenuState.dmid) },
+        onRecall = { viewModel.recallDanmaku(danmakuMenuState.dmid) },
+        onReport = { reason ->
+            viewModel.reportDanmaku(danmakuMenuState.dmid, reason)
+        },
+        voteCount = danmakuMenuState.voteCount,
+        hasLiked = danmakuMenuState.hasLiked,
+        voteLoading = danmakuMenuState.voteLoading,
+        canVote = danmakuMenuState.canVote,
+        canRecall = danmakuMenuState.isSelf,
+        canBlockKeyword = danmakuMenuState.text.isNotBlank(),
+        onBlockKeyword = {
+            val updatedRules = appendDanmakuKeywordBlockRule(
+                rawRules = activeDanmakuBlockRulesRaw,
+                keyword = danmakuMenuState.text
             )
-        }
-        
-        // 🔗 绑定弹幕点击监听器
-        LaunchedEffect(danmakuManager) {
-            danmakuManager.setOnDanmakuClickListener { text, dmid, userHash, isSelf ->
-                android.util.Log.d("VideoDetailScreen", "👆 Danmaku clicked: $text")
-                viewModel.showDanmakuMenu(dmid, text, userHash, isSelf)
+            val changed = updatedRules != activeDanmakuBlockRulesRaw
+            sortPreferenceScope.launch {
+                com.android.purebilibili.core.store.SettingsManager.setDanmakuBlockRulesRaw(
+                    context,
+                    updatedRules,
+                    activeDanmakuScope
+                )
+            }
+            viewModel.toast(
+                resolveDanmakuBlockActionFeedbackMessage(
+                    target = DanmakuBlockActionTarget.KEYWORD,
+                    changed = changed
+                )
+            )
+        },
+        canBlockUser = danmakuMenuState.userHash.isNotBlank(),
+        onBlockUser = {
+            val userHash = danmakuMenuState.userHash
+            if (userHash.isBlank()) {
+                viewModel.toast("该弹幕缺少发送者标识")
+            } else {
+                val updatedRules = appendDanmakuUserHashBlockRule(
+                    rawRules = activeDanmakuBlockRulesRaw,
+                    userHash = userHash
+                )
+                val changed = updatedRules != activeDanmakuBlockRulesRaw
+                sortPreferenceScope.launch {
+                    com.android.purebilibili.core.store.SettingsManager.setDanmakuBlockRulesRaw(
+                        context,
+                        updatedRules,
+                        activeDanmakuScope
+                    )
+                }
+                viewModel.toast(
+                    resolveDanmakuBlockActionFeedbackMessage(
+                        target = DanmakuBlockActionTarget.USER,
+                        changed = changed
+                    )
+                )
             }
         }
-    }
+    )
 }
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
