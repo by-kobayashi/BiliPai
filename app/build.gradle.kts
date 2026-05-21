@@ -81,8 +81,8 @@ android {
         targetSdk = 35  // 保持35以避免Android 16的新运行时行为
         // 🔥🔥 [版本号] 发布新版前记得更新！格式：versionCode +1, versionName 递增
         // 更新日志：CHANGELOG.md
-        versionCode = 201
-        versionName = "8.3.7"
+        versionCode = 202
+        versionName = "8.3.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -325,6 +325,7 @@ dependencies {
     // --- 3.6 Navigation3 (Compose 自有返回栈与预测性返回迁移层) ---
     implementation("androidx.navigation3:navigation3-runtime:1.1.1")
     implementation("androidx.navigation3:navigation3-ui:1.1.1")
+    implementation("androidx.navigationevent:navigationevent-compose:1.1.1")
     
     // --- 3.7 Startup (应用初始化) ---
     implementation("androidx.startup:startup-runtime:1.2.0")

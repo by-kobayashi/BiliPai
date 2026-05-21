@@ -92,6 +92,23 @@ internal fun resolveBottomPagerItemForPage(
     return visibleItems.getOrNull(page) ?: BottomNavItem.HOME
 }
 
+internal fun resolveVideoCardSourceRouteForNavigation(
+    currentRoute: String?,
+    videoBvid: String,
+    lastClickedVideoSourceKey: String?,
+    visibleBottomBarRoutes: Set<String>
+): String? {
+    if (videoBvid.isBlank() || lastClickedVideoSourceKey.isNullOrBlank()) return null
+    val routeBase = currentRoute?.substringBefore("?")
+    val currentRouteMatch = routeBase
+        ?.takeIf { route -> lastClickedVideoSourceKey == "$route:$videoBvid" }
+    if (currentRouteMatch != null) return currentRouteMatch
+
+    return visibleBottomBarRoutes.firstOrNull { route ->
+        lastClickedVideoSourceKey == "$route:$videoBvid"
+    }
+}
+
 internal fun resolveBottomPagerSaveableStateKey(item: BottomNavItem): String {
     return "bottom:${item.route}"
 }

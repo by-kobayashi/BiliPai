@@ -145,6 +145,13 @@ class SettingsSearchPolicyTest {
     }
 
     @Test
+    fun queryByPredictiveBackPreview_hitsAppearanceEntry() {
+        val results = resolveSettingsSearchResults("预测性返回预览")
+
+        assertTrue(results.any { it.target == SettingsSearchTarget.APPEARANCE })
+    }
+
+    @Test
     fun queryByPictureInPicture_hitsPlaybackEntry() {
         val results = resolveSettingsSearchResults("画中画")
 

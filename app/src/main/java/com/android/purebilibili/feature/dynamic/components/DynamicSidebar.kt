@@ -46,6 +46,7 @@ import com.android.purebilibili.core.ui.blur.currentUnifiedBlurIntensity
 import com.android.purebilibili.feature.dynamic.resolveDynamicSidebarWidth
 import com.android.purebilibili.core.ui.blur.rememberRecoverableHazeState
 import com.android.purebilibili.core.ui.blur.unifiedBlur
+import com.android.purebilibili.feature.dynamic.resolveDynamicSidebarDividerTopOffset
 import com.android.purebilibili.feature.dynamic.resolveDynamicSidebarReturnHeaderHeightDp
 import com.android.purebilibili.feature.dynamic.shouldShowDynamicUserLiveBadge
 import com.android.purebilibili.feature.dynamic.SidebarUser
@@ -91,11 +92,6 @@ fun DynamicSidebar(
             .clip(androidx.compose.ui.graphics.RectangleShape) // [修复] 直角
             .background(
                 MaterialTheme.colorScheme.surface // 纯白背景，减少割裂感
-            )
-            .border(
-                width = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
-                shape = androidx.compose.ui.graphics.RectangleShape // [修复] 直角
             )
     ) {
         // 内容层 - 使用 Box 重新组织布局以支持模糊
@@ -185,7 +181,8 @@ fun DynamicSidebar(
         // 右侧边框线 - 极细
         Box(
             modifier = Modifier
-                .align(Alignment.CenterEnd)
+                .align(Alignment.TopEnd)
+                .padding(top = resolveDynamicSidebarDividerTopOffset(topPadding))
                 .fillMaxHeight()
                 .width(0.5.dp)
                 .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))

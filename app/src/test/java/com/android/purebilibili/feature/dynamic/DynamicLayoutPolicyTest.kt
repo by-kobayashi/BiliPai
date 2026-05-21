@@ -67,6 +67,14 @@ class DynamicLayoutPolicyTest {
     }
 
     @Test
+    fun `dynamic sidebar divider starts below top chrome`() {
+        assertEquals(
+            76.dp,
+            resolveDynamicSidebarDividerTopOffset(topPadding = 24.dp)
+        )
+    }
+
+    @Test
     fun `dynamic sidebar trims width without crowding avatar affordances`() {
         assertEquals(68.dp, resolveDynamicSidebarWidth(isExpanded = true))
         assertEquals(60.dp, resolveDynamicSidebarWidth(isExpanded = false))

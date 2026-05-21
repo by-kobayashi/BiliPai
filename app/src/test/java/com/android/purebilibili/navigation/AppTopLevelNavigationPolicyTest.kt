@@ -253,6 +253,59 @@ class AppTopLevelNavigationPolicyTest {
     }
 
     @Test
+    fun videoSourceRoute_matchesCurrentRouteWhenNavigationTopIsSourcePage() {
+        assertEquals(
+            ScreenRoutes.Dynamic.route,
+            resolveVideoCardSourceRouteForNavigation(
+                currentRoute = ScreenRoutes.Dynamic.route,
+                videoBvid = "BV1xx411c7mD",
+                lastClickedVideoSourceKey = "${ScreenRoutes.Dynamic.route}:BV1xx411c7mD",
+                visibleBottomBarRoutes = setOf(
+                    ScreenRoutes.Home.route,
+                    ScreenRoutes.Dynamic.route,
+                    ScreenRoutes.History.route,
+                    ScreenRoutes.Profile.route
+                )
+            )
+        )
+    }
+
+    @Test
+    fun videoSourceRoute_matchesVisibleBottomPagerRouteWhenNavigationTopIsMainHost() {
+        assertEquals(
+            ScreenRoutes.Dynamic.route,
+            resolveVideoCardSourceRouteForNavigation(
+                currentRoute = "main_host",
+                videoBvid = "BV1xx411c7mD",
+                lastClickedVideoSourceKey = "${ScreenRoutes.Dynamic.route}:BV1xx411c7mD",
+                visibleBottomBarRoutes = setOf(
+                    ScreenRoutes.Home.route,
+                    ScreenRoutes.Dynamic.route,
+                    ScreenRoutes.History.route,
+                    ScreenRoutes.Profile.route
+                )
+            )
+        )
+    }
+
+    @Test
+    fun videoSourceRoute_rejectsMismatchedClickedVideoKey() {
+        assertNull(
+            resolveVideoCardSourceRouteForNavigation(
+                currentRoute = "main_host",
+                videoBvid = "BV1xx411c7mD",
+                lastClickedVideoSourceKey = "${ScreenRoutes.Dynamic.route}:BV9xx411c7mD",
+                visibleBottomBarRoutes = setOf(
+                    ScreenRoutes.Home.route,
+                    ScreenRoutes.Dynamic.route,
+                    ScreenRoutes.History.route,
+                    ScreenRoutes.Profile.route
+                )
+            )
+        )
+    }
+
+    @Test
     fun bottomPagerNavigationDuration_scalesWithNavigationDistance() {
         assertEquals(
             300,

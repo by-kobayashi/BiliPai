@@ -2,6 +2,7 @@ package com.android.purebilibili.navigation3
 
 import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class BiliPaiNavDisplayHostStructureTest {
@@ -25,8 +26,25 @@ class BiliPaiNavDisplayHostStructureTest {
         val buildFile = buildFileSource()
 
         assertTrue(buildFile.contains("androidx.lifecycle:lifecycle-viewmodel-navigation3:"))
+        assertTrue(buildFile.contains("androidx.navigationevent:navigationevent-compose:1.1.1"))
+        assertTrue(source.contains("rememberDecoratedNavEntries("))
+        assertTrue(source.contains("rememberSceneState("))
         assertTrue(source.contains("rememberSaveableStateHolderNavEntryDecorator"))
         assertTrue(source.contains("rememberViewModelStoreNavEntryDecorator"))
+    }
+
+    @Test
+    fun navDisplayHostHoistsNavigationEventStateIntoNavDisplay() {
+        val source = navDisplayHostSource()
+
+        assertTrue(source.contains("rememberNavigationEventState("))
+        assertTrue(source.contains("NavigationBackHandler("))
+        assertTrue(source.contains("onBackCompleted = {"))
+        assertTrue(source.contains("predictiveBackMotion.onBackPressed("))
+        assertTrue(source.contains("onBack()"))
+        assertTrue(source.contains("navigationEventState = navigationEventState"))
+        assertTrue(source.contains("sceneState = sceneState"))
+        kotlin.test.assertFalse(source.contains("NavDisplay(\n        backStack = safeBackStack"))
     }
 
     @Test
@@ -39,14 +57,24 @@ class BiliPaiNavDisplayHostStructureTest {
     }
 
     @Test
-    fun classicBackInterceptorIsComposedAfterNavDisplay() {
+    fun navDisplayHostDoesNotRegisterClassicBackInterceptor() {
         val source = navDisplayHostSource()
 
-        val navDisplayIndex = source.indexOf("NavDisplay(")
-        val backHandlerIndex = source.indexOf("BackHandler(")
+        assertTrue(source.contains("NavDisplay("))
+        assertTrue(source.contains("onBack = onBack"))
+        assertFalse(source.contains("import androidx.activity.compose.BackHandler"))
+        assertFalse(source.contains("BackHandler(enabled"))
+    }
 
-        assertTrue(navDisplayIndex >= 0)
-        assertTrue(backHandlerIndex > navDisplayIndex)
+    @Test
+    fun navDisplayHostKeepsPredictiveReturnProgressLocalToNavDisplay() {
+        val source = navDisplayHostSource()
+
+        assertTrue(source.contains("LocalVideoPredictiveReturnState provides videoPredictiveReturnState"))
+        assertTrue(source.contains("videoPredictiveReturnToCardEnabled: Boolean"))
+        assertTrue(source.contains("videoPredictiveReturnSourceBounds: Rect?"))
+        assertFalse(source.contains("onPredictiveBackGestureChange"))
+        assertFalse(source.contains("LaunchedEffect(predictiveBackGestureState)"))
     }
 
     private fun navDisplayHostSource(): String {

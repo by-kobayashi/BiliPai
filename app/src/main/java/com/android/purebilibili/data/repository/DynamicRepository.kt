@@ -193,6 +193,9 @@ object DynamicRepository {
             if (desktopResponse.code == 0) {
                 val item = desktopResponse.data?.item
                     ?: return@withContext Result.failure(Exception("动态详情为空"))
+                if (shouldFetchOpusDetailForDynamicDetail(item)) {
+                    fetchOpusDetailItem(cleanedId)?.let { return@withContext Result.success(it) }
+                }
                 if (!shouldFallbackForDynamicDetail(item)) {
                     return@withContext Result.success(item)
                 }

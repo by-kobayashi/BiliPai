@@ -23,7 +23,7 @@ class AppNavigationNavigation3BridgeStructureTest {
 
         assertTrue(source.contains("resolveBiliPaiNavMotionDecision"))
         assertTrue(source.contains("BiliPaiNavRouteTransition.NO_OP_SHARED_ELEMENT"))
-        assertTrue(source.contains("shouldInterceptSystemBackForNavigation3"))
+        assertTrue(source.contains("resolveBiliPaiBackGestureDecision"))
     }
 
     @Test
@@ -57,16 +57,29 @@ class AppNavigationNavigation3BridgeStructureTest {
     }
 
     @Test
-    fun predictiveVideoSharedElementReturnUsesClassicBackInterception() {
+    fun appNavigationUsesUnifiedBackGestureDecision() {
         val source = appNavigationSource()
 
-        val interceptIndex = source.indexOf("val shouldInterceptVideoSharedElementReturn")
-        val systemBackIndex = source.indexOf("val shouldInterceptSystemBack = remember(")
+        val decisionIndex = source.indexOf("val backGestureDecision = remember(")
+        val handlerIndex = source.indexOf("BackHandler(enabled = shouldInterceptSystemBack)")
 
-        assertTrue(interceptIndex >= 0)
-        assertTrue(systemBackIndex > interceptIndex)
-        assertTrue(source.contains("shouldUseClassicBackForVideoSharedElementReturn("))
-        assertTrue(source.contains("shouldInterceptVideoSharedElementReturn ||"))
+        assertTrue(decisionIndex >= 0)
+        assertTrue(handlerIndex > decisionIndex)
+        assertTrue(source.contains("resolveBiliPaiBackGestureDecision("))
+        assertTrue(source.contains("shouldInterceptSystemBack = backGestureDecision.interceptSystemBack"))
+        assertTrue(source.contains("sourceMetadata = navigation3SourceMetadata"))
+        assertFalse(source.contains("shouldUseClassicBackForVideoSharedElementReturn("))
+        assertFalse(source.contains("shouldInterceptVideoSharedElementReturn ||"))
+    }
+
+    @Test
+    fun appNavigationDoesNotOwnPredictiveBackProgressState() {
+        val source = appNavigationSource()
+
+        assertFalse(source.contains("navigation3PredictiveBackGestureState"))
+        assertFalse(source.contains("onPredictiveBackGestureChange"))
+        assertTrue(source.contains("videoPredictiveReturnToCardEnabled = videoPredictiveReturnToCardEnabled"))
+        assertTrue(source.contains("videoPredictiveReturnSourceBounds = CardPositionManager.lastClickedCardBounds"))
     }
 
     @Test

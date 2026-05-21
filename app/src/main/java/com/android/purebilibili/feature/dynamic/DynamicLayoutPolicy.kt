@@ -34,6 +34,10 @@ internal fun resolveDynamicTopBarHeightDp(): Int = 52
 
 internal fun resolveDynamicSidebarReturnHeaderHeightDp(): Int = resolveDynamicTopBarHeightDp()
 
+internal fun resolveDynamicSidebarDividerTopOffset(topPadding: Dp): Dp {
+    return topPadding + resolveDynamicSidebarReturnHeaderHeightDp().dp
+}
+
 internal data class DynamicTopBarLiquidTabSpec(
     val topPaddingDp: Int,
     val bottomPaddingDp: Int,
