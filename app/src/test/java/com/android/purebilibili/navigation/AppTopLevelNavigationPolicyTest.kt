@@ -87,17 +87,17 @@ class AppTopLevelNavigationPolicyTest {
         assertEquals(
             AppSystemBackAction.RETURN_TO_HOME_TAB,
             resolveAppSystemBackAction(
-                currentRoute = ScreenRoutes.Home.route,
+                isAtMainHostRoot = true,
                 currentBottomItem = BottomNavItem.FAVORITE,
-                hasPreviousBackStackEntry = false
+                homeItem = BottomNavItem.HOME
             )
         )
         assertEquals(
             AppSystemBackAction.RETURN_TO_HOME_TAB,
             resolveAppSystemBackAction(
-                currentRoute = ScreenRoutes.Home.route,
+                isAtMainHostRoot = true,
                 currentBottomItem = BottomNavItem.HISTORY,
-                hasPreviousBackStackEntry = true
+                homeItem = BottomNavItem.HOME
             )
         )
     }
@@ -153,17 +153,17 @@ class AppTopLevelNavigationPolicyTest {
         assertEquals(
             AppSystemBackAction.NAVIGATE_UP,
             resolveAppSystemBackAction(
-                currentRoute = ScreenRoutes.Home.route,
+                isAtMainHostRoot = false,
                 currentBottomItem = BottomNavItem.HOME,
-                hasPreviousBackStackEntry = true
+                homeItem = BottomNavItem.HOME
             )
         )
         assertEquals(
             AppSystemBackAction.FINISH_ACTIVITY,
             resolveAppSystemBackAction(
-                currentRoute = ScreenRoutes.Home.route,
+                isAtMainHostRoot = true,
                 currentBottomItem = BottomNavItem.HOME,
-                hasPreviousBackStackEntry = false
+                homeItem = BottomNavItem.HOME
             )
         )
     }
@@ -299,6 +299,7 @@ class AppTopLevelNavigationPolicyTest {
     fun bottomPagerDuringNavigation_composesOnlyCurrentAndTargetBeforeReady() {
         assertTrue(
             shouldComposeBottomPagerPage(
+                item = BottomNavItem.HOME,
                 page = 0,
                 currentPage = 0,
                 selectedPage = 2,
@@ -307,6 +308,7 @@ class AppTopLevelNavigationPolicyTest {
         )
         assertTrue(
             shouldComposeBottomPagerPage(
+                item = BottomNavItem.HISTORY,
                 page = 2,
                 currentPage = 0,
                 selectedPage = 2,
@@ -315,6 +317,7 @@ class AppTopLevelNavigationPolicyTest {
         )
         assertFalse(
             shouldComposeBottomPagerPage(
+                item = BottomNavItem.DYNAMIC,
                 page = 1,
                 currentPage = 0,
                 selectedPage = 2,
@@ -323,6 +326,7 @@ class AppTopLevelNavigationPolicyTest {
         )
         assertTrue(
             shouldComposeBottomPagerPage(
+                item = BottomNavItem.DYNAMIC,
                 page = 1,
                 currentPage = 0,
                 selectedPage = 2,
@@ -345,153 +349,40 @@ class AppTopLevelNavigationPolicyTest {
     }
 
     @Test
-    fun bottomTabNavigation_setsTransitionTargetOnlyForVisibleTopLevelTabs() {
-        val visibleRoutes = setOf(
-            ScreenRoutes.Home.route,
-            ScreenRoutes.Dynamic.route,
-            ScreenRoutes.History.route,
-            ScreenRoutes.Profile.route
-        )
-
-        assertEquals(
-            ScreenRoutes.Profile.route,
-            resolveBottomTabTransitionTargetRoute(
-                currentRoute = ScreenRoutes.Home.route,
-                targetRoute = ScreenRoutes.Profile.route,
-                visibleBottomBarRoutes = visibleRoutes
+    fun storyBottomPagerPage_skipsOffscreenPreloadEvenAfterContentReady() {
+        assertFalse(
+            shouldComposeBottomPagerPage(
+                item = BottomNavItem.STORY,
+                page = 3,
+                currentPage = 0,
+                selectedPage = 1,
+                contentReady = true
             )
         )
-        assertNull(
-            resolveBottomTabTransitionTargetRoute(
-                currentRoute = VideoRoute.route,
-                targetRoute = ScreenRoutes.Profile.route,
-                visibleBottomBarRoutes = visibleRoutes
-            )
-        )
-        assertNull(
-            resolveBottomTabTransitionTargetRoute(
-                currentRoute = ScreenRoutes.Home.route,
-                targetRoute = ScreenRoutes.Search.route,
-                visibleBottomBarRoutes = visibleRoutes
+        assertTrue(
+            shouldComposeBottomPagerPage(
+                item = BottomNavItem.STORY,
+                page = 3,
+                currentPage = 3,
+                selectedPage = 1,
+                contentReady = false
             )
         )
     }
 
     @Test
-    fun appNavigationUsesRealBottomTabTransitionStateForRenderBudget() {
+    fun appNavigationUsesMainBottomPagerStateForRenderBudget() {
         val sourceFile = listOf(
             File("app/src/main/java/com/android/purebilibili/navigation/AppNavigation.kt"),
             File("src/main/java/com/android/purebilibili/navigation/AppNavigation.kt")
         ).first { it.exists() }
         val source = sourceFile.readText()
 
-        assertTrue(source.contains("pendingBottomTabTransitionRoute"))
-        assertTrue(source.contains("resolveBottomPagerRenderBudget(isNavigating = pendingBottomTabTransitionRoute != null)"))
-        assertFalse(source.contains("remember { resolveBottomPagerRenderBudget(isNavigating = false) }"))
-    }
-
-    @Test
-    fun routeMatchingVisibleBottomItem_selectsThatItem() {
-        assertEquals(
-            BottomNavItem.HISTORY,
-            resolveBottomNavItemForRoute(
-                currentRoute = ScreenRoutes.History.route,
-                retainedItem = BottomNavItem.HOME
-            )
-        )
-        assertEquals(
-            BottomNavItem.PROFILE,
-            resolveBottomNavItemForRoute(
-                currentRoute = ScreenRoutes.Profile.route,
-                retainedItem = BottomNavItem.HISTORY
-            )
-        )
-    }
-
-    @Test
-    fun secondaryRoute_keepsRetainedBottomItemInsteadOfFallingBackHome() {
-        assertEquals(
-            BottomNavItem.HISTORY,
-            resolveBottomNavItemForRoute(
-                currentRoute = VideoRoute.route,
-                retainedItem = BottomNavItem.HISTORY
-            )
-        )
-        assertEquals(
-            BottomNavItem.PROFILE,
-            resolveBottomNavItemForRoute(
-                currentRoute = ScreenRoutes.DownloadList.route,
-                retainedItem = BottomNavItem.PROFILE
-            )
-        )
-    }
-
-    @Test
-    fun unknownRouteWithoutRetainedItem_fallsBackHome() {
-        assertEquals(
-            BottomNavItem.HOME,
-            resolveBottomNavItemForRoute(
-                currentRoute = ScreenRoutes.DownloadList.route,
-                retainedItem = null
-            )
-        )
-    }
-
-    @Test
-    fun bottomTabToBottomTab_usesInstantTransition() {
-        val visibleRoutes = setOf(
-            ScreenRoutes.Home.route,
-            ScreenRoutes.Dynamic.route,
-            ScreenRoutes.History.route,
-            ScreenRoutes.Profile.route
-        )
-
-        assertTrue(
-            shouldUseInstantBottomTabTransition(
-                fromRoute = ScreenRoutes.Home.route,
-                toRoute = ScreenRoutes.History.route,
-                visibleBottomBarRoutes = visibleRoutes
-            )
-        )
-        assertTrue(
-            shouldUseInstantBottomTabTransition(
-                fromRoute = ScreenRoutes.Profile.route,
-                toRoute = ScreenRoutes.Dynamic.route,
-                visibleBottomBarRoutes = visibleRoutes
-            )
-        )
-    }
-
-    @Test
-    fun secondaryRouteTransitions_keepRegularRouteMotion() {
-        val visibleRoutes = setOf(
-            ScreenRoutes.Home.route,
-            ScreenRoutes.Dynamic.route,
-            ScreenRoutes.History.route,
-            ScreenRoutes.Profile.route
-        )
-
-        assertFalse(
-            shouldUseInstantBottomTabTransition(
-                fromRoute = VideoRoute.route,
-                toRoute = ScreenRoutes.History.route,
-                visibleBottomBarRoutes = visibleRoutes
-            )
-        )
-        assertFalse(
-            shouldUseInstantBottomTabTransition(
-                fromRoute = ScreenRoutes.Home.route,
-                toRoute = ScreenRoutes.Search.route,
-                visibleBottomBarRoutes = visibleRoutes
-            )
-        )
-        assertFalse(
-            shouldUseInstantBottomTabTransition(
-                fromRoute = ScreenRoutes.History.route,
-                toRoute = ScreenRoutes.History.route,
-                visibleBottomBarRoutes = visibleRoutes
-            )
-        )
+        assertTrue(source.contains("rememberMainBottomPagerState("))
+        assertTrue(source.contains("resolveBottomPagerRenderBudget(isNavigating = mainBottomPagerState.isNavigating)"))
+        assertFalse(source.contains("pendingBottomTabTransitionRoute"))
+        assertFalse(source.contains("resolveBottomTabTransitionTargetRoute"))
+        assertFalse(source.contains("shouldUseInstantBottomTabTransition"))
     }
 
     @Test
