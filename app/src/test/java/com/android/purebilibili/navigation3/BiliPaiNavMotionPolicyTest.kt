@@ -82,6 +82,21 @@ class BiliPaiNavMotionPolicyTest {
     }
 
     @Test
+    fun disabledCardTransitionWithSharedReadyVideoReturnDoesNotUseNoOpRouteLayer() {
+        val decision = resolveBiliPaiNavMotionDecision(
+            fromKey = BiliPaiNavKey.VideoDetail("BV1"),
+            toKey = BiliPaiNavKey.Home,
+            predictiveBackAnimationStyle = PredictiveBackAnimationStyle.NONE,
+            cardTransitionEnabled = false,
+            sharedTransitionReady = true
+        )
+
+        assertEquals(BiliPaiNavMotionMode.CARD_DISABLED, decision.mode)
+        assertEquals(BiliPaiNavRouteTransition.FALLBACK, decision.routeTransition)
+        assertFalse(decision.interceptSystemBack)
+    }
+
+    @Test
     fun predictiveEnabledSharedVideoReturnLetsNavDisplayOwnBackGesture() {
         val decision = resolveBiliPaiBackGestureDecision(
             predictiveBackAnimationStyle = PredictiveBackAnimationStyle.AOSP,

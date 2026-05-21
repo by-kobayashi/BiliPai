@@ -678,15 +678,24 @@ private fun VideoDetailRouteSheetHost(
 internal fun resolveVideoDetailEntryVisualFrame(
     rawProgress: Float,
     transitionEnabled: Boolean,
+    fallbackBlurEnabled: Boolean = false,
     maxBlurRadiusPx: Float
 ): VideoDetailEntryVisualFrame {
     // 共享元素模式下，sharedBounds 已经处理视觉过渡，
     // 额外的 alpha/blur 会与共享元素动画冲突导致闪烁。
-    // 无论是否启用过渡，都返回完全不透明、无模糊。
+    if (transitionEnabled || !fallbackBlurEnabled) {
+        return VideoDetailEntryVisualFrame(
+            contentAlpha = 1f,
+            scrimAlpha = 0f,
+            blurRadiusPx = 0f
+        )
+    }
+    val progress = rawProgress.coerceIn(0f, 1f)
+    val maxLightBlurRadiusPx = maxBlurRadiusPx.coerceAtMost(6f).coerceAtLeast(0f)
     return VideoDetailEntryVisualFrame(
         contentAlpha = 1f,
         scrimAlpha = 0f,
-        blurRadiusPx = 0f
+        blurRadiusPx = maxLightBlurRadiusPx * (1f - progress)
     )
 }
 
@@ -913,6 +922,7 @@ fun VideoDetailScreen(
     onMarkReturningFromDetail: () -> Unit = {},
     onClearReturningFromDetail: () -> Unit = {},
     transitionEnabled: Boolean = false,
+    fallbackEntryBlurEnabled: Boolean = false,
     predictiveBackAnimationEnabled: Boolean = true,
     transitionEnterDurationMillis: Int = 320,
     transitionMaxBlurRadiusPx: Float = 20f,
@@ -1065,19 +1075,20 @@ fun VideoDetailScreen(
     // shell sharedBounds 接管整体 morph 时，内容必须从第一帧就处在最终布局，
     // 不能再走 isTransitionFinished 门控触发的二级 fadeIn / slide / shrink。
     val shellSharedBoundsLikely = transitionEnabled && !sourceRouteForSharedElement.isNullOrBlank()
+    val entryVisualEnabled = transitionEnabled || fallbackEntryBlurEnabled
     var isTransitionFinished by remember {
-        mutableStateOf(!transitionEnabled || shellSharedBoundsLikely)
+        mutableStateOf(!entryVisualEnabled || shellSharedBoundsLikely)
     }
-    val entryVisualProgress = remember(transitionEnabled) {
-        Animatable(if (transitionEnabled) 0f else 1f)
+    val entryVisualProgress = remember(entryVisualEnabled) {
+        Animatable(if (entryVisualEnabled) 0f else 1f)
     }
 
     LaunchedEffect(
-        transitionEnabled,
+        entryVisualEnabled,
         motionSpec.entryPhaseDurationMillis,
         shellSharedBoundsLikely
     ) {
-        if (!transitionEnabled || shellSharedBoundsLikely) {
+        if (!entryVisualEnabled || shellSharedBoundsLikely) {
             entryVisualProgress.snapTo(1f)
             isTransitionFinished = true
             return@LaunchedEffect
@@ -1098,11 +1109,13 @@ fun VideoDetailScreen(
     val entryVisualFrame = remember(
         entryVisualProgress.value,
         transitionEnabled,
+        fallbackEntryBlurEnabled,
         transitionMaxBlurRadiusPx
     ) {
         resolveVideoDetailEntryVisualFrame(
             rawProgress = entryVisualProgress.value,
             transitionEnabled = transitionEnabled,
+            fallbackBlurEnabled = fallbackEntryBlurEnabled,
             maxBlurRadiusPx = transitionMaxBlurRadiusPx
         )
     }

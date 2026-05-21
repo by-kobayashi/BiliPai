@@ -125,6 +125,7 @@ import com.android.purebilibili.core.store.resolveEffectiveHomeSettings
 import com.android.purebilibili.core.theme.LocalUiPreset
 import com.android.purebilibili.core.util.NetworkUtils
 import com.android.purebilibili.navigation3.BiliPaiNavDisplayHost
+import com.android.purebilibili.navigation3.BiliPaiNavCardSourceDirection
 import com.android.purebilibili.navigation3.BiliPaiNavEntryContentRole
 import com.android.purebilibili.navigation3.BiliPaiNavKey
 import com.android.purebilibili.navigation3.BiliPaiReturnSessionState
@@ -132,6 +133,7 @@ import com.android.purebilibili.navigation3.legacyRouteToBiliPaiNavKey
 import com.android.purebilibili.navigation3.popBiliPaiNavKey
 import com.android.purebilibili.navigation3.pushBiliPaiNavKey
 import com.android.purebilibili.navigation3.resolveBiliPaiBackGestureDecision
+import com.android.purebilibili.navigation3.resolveBiliPaiNavCardSourceDirection
 import com.android.purebilibili.navigation3.resolveBiliPaiNavMotionMode
 import com.android.purebilibili.navigation3.resolveBiliPaiNavEntryContentRole
 import com.android.purebilibili.navigation3.resolveBiliPaiNavSourceMetadata
@@ -505,7 +507,14 @@ fun AppNavigation(
             sourceRoute = navigation3ReturnSession.lastVideoSourceRoute,
             clickedBoundsRecorded = CardPositionManager.lastClickedCardBounds != null &&
                 CardPositionManager.lastClickedVideoSourceKey == navigation3ReturnSession.lastVideoSourceKey,
-            cardFullyVisible = CardPositionManager.isCardFullyVisible
+            cardFullyVisible = CardPositionManager.isCardFullyVisible,
+            cardSourceDirection = resolveBiliPaiNavCardSourceDirection(
+                clickedBoundsRecorded = CardPositionManager.lastClickedCardBounds != null &&
+                    CardPositionManager.lastClickedVideoSourceKey == navigation3ReturnSession.lastVideoSourceKey,
+                cardFullyVisible = CardPositionManager.isCardFullyVisible,
+                isSingleColumnCard = CardPositionManager.isSingleColumnCard,
+                normalizedCenterX = CardPositionManager.lastClickedCardCenter?.x
+            )
         )
         fun pushNavigation3KeyDirect(key: BiliPaiNavKey) {
             navigation3BackStack = pushBiliPaiNavKey(
@@ -1467,6 +1476,9 @@ fun AppNavigation(
                                     cardTransitionEnabled = cardTransitionEnabled,
                                     predictiveBackAnimationEnabled = predictiveBackAnimationEnabled
                                 ),
+                                fallbackEntryBlurEnabled = !cardTransitionEnabled &&
+                                    videoKey.sourceRoute == ScreenRoutes.Home.route &&
+                                    navigation3SourceMetadata.cardSourceDirection != BiliPaiNavCardSourceDirection.NONE,
                                 predictiveBackAnimationEnabled = predictiveBackAnimationEnabled,
                                 transitionEnterDurationMillis = navMotionSpec.slowFadeDurationMillis,
                                 transitionMaxBlurRadiusPx = navMotionSpec.maxBackdropBlurRadius,
@@ -2122,6 +2134,7 @@ fun AppNavigation(
                 BiliPaiNavDisplayHost(
                     backStack = navigation3BackStack,
                     motionMode = navigation3MotionMode,
+                    cardTransitionEnabled = cardTransitionEnabled,
                     predictiveBackAnimationStyle = predictiveBackAnimationStyle,
                     sourceMetadata = navigation3SourceMetadata,
                     onBack = { performSystemBackAction() },

@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 internal fun BiliPaiNavDisplayHost(
     backStack: List<BiliPaiNavKey>,
     motionMode: BiliPaiNavMotionMode,
+    cardTransitionEnabled: Boolean = true,
     predictiveBackAnimationStyle: PredictiveBackAnimationStyle,
     sourceMetadata: BiliPaiNavSourceMetadata,
     onBack: () -> Unit,
@@ -81,9 +82,10 @@ internal fun BiliPaiNavDisplayHost(
             }
         }
     }
-    val entryProvider = remember(sourceMetadata, visibleBottomBarRoutes, scopedContent) {
+    val entryProvider = remember(sourceMetadata, cardTransitionEnabled, visibleBottomBarRoutes, scopedContent) {
         biliPaiNavEntryProvider(
             sourceMetadata = sourceMetadata,
+            cardTransitionEnabled = cardTransitionEnabled,
             visibleBottomBarRoutes = visibleBottomBarRoutes,
             content = scopedContent
         )
