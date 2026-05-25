@@ -1,17 +1,18 @@
-package com.android.purebilibili.feature.cast
+package com.android.purebilibili.feature.plugin.googlecast
 
 import android.content.Context
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
+import com.android.purebilibili.core.plugin.CastPluginRoute
 import com.google.android.gms.cast.CastMediaControlIntent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-object GoogleCastRouteManager {
+internal object GoogleCastRouteManager {
 
-    private val _routes = MutableStateFlow<List<GoogleCastRouteInfo>>(emptyList())
-    val routes: StateFlow<List<GoogleCastRouteInfo>> = _routes.asStateFlow()
+    private val _routes = MutableStateFlow<List<CastPluginRoute>>(emptyList())
+    val routes: StateFlow<List<CastPluginRoute>> = _routes.asStateFlow()
 
     private var mediaRouter: MediaRouter? = null
     private var selector: MediaRouteSelector? = null
@@ -63,7 +64,7 @@ object GoogleCastRouteManager {
 
     private fun updateRoutes(router: MediaRouter) {
         val castRoutes = router.routes.mapNotNull { route ->
-            toGoogleCastRouteInfo(
+            toCastPluginRoute(
                 routeId = route.id,
                 name = route.name,
                 description = route.description,
@@ -71,7 +72,7 @@ object GoogleCastRouteManager {
                 isDefaultOrBluetooth = route.isDefaultOrBluetooth,
                 supportsCastCategory = route.supportsControlCategory(castControlCategory)
             )
-        }
+        }.distinctBy { it.routeId }
         _routes.value = castRoutes
     }
 }

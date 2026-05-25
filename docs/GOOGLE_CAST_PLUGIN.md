@@ -26,7 +26,7 @@ If `docs/GOOGLE_CAST_PLUGIN.local.md` exists, read it after this file for machin
 
 ## Architecture Decision
 
-Implement Google Cast as a native plugin plus a focused Cast integration layer:
+Implement Google Cast as a native plugin accessed through the CastPluginApi boundary, so the player overlay discovers and loads cast routes generically without hosting Google Cast specifics directly:
 
 - Add a native plugin entry so the feature appears in the plugin center and can be enabled or disabled.
 - Add a small cast-provider abstraction so the player overlay can offer DLNA and Google Cast without mixing protocol details into UI code.
@@ -66,7 +66,7 @@ Likely files:
 - `app/build.gradle.kts`
 - `app/src/main/AndroidManifest.xml`
 - `app/src/main/java/com/android/purebilibili/app/PureApplication.kt`
-- `app/src/main/java/com/android/purebilibili/feature/plugin/GoogleCastPlugin.kt`
+- `app/src/main/java/com/android/purebilibili/feature/plugin/googlecast/GoogleCastPlugin.kt`
 - New focused tests under `app/src/test/java/com/android/purebilibili/feature/cast/`
 
 Result on 2026-05-26:
@@ -87,16 +87,17 @@ Status: complete.
 
 Likely files:
 
-- New Google Cast manager/provider files under `feature/cast/`
+- `app/src/main/java/com/android/purebilibili/core/plugin/CastPluginApi.kt`
+- Google Cast manager/provider files under `feature/plugin/googlecast/`
 - `DeviceListDialog.kt`
 - Focused discovery/presentation policy tests
 
 Result on 2026-05-26:
 
-- Added MediaRouter-based Google Cast route discovery gated by the `google_cast` plugin enabled state.
-- Added route filtering/presentation policy tests for disabled plugin state, default/Bluetooth routes, cast-category support, fallback names, and deduplication.
-- Added Google Cast routes to the existing device dialog using the same DLNA row structure and interaction pattern; only the icon and Google Cast label differ.
-- Left Chromecast media loading as Slice 3.
+- Added the generic `CastPluginApi` boundary so the host cast dialog handles plugin cast providers without importing Google Cast protocol classes.
+- Added MediaRouter-based Google Cast route discovery inside the native Google Cast plugin implementation.
+- Added route filtering/presentation policy tests for default/Bluetooth routes, cast-category support, fallback names, and route mapping.
+- Added plugin-provided cast routes to the existing device dialog using the same DLNA row structure and interaction pattern; only the icon and plugin label differ.
 - Verified with `.\gradlew.bat :app:testDebugUnitTest --tests "*GoogleCast*" --no-daemon`.
 - Verified with `.\gradlew.bat :app:testDebugUnitTest --tests "*Cast*" --no-daemon`.
 
@@ -104,11 +105,19 @@ Result on 2026-05-26:
 
 Goal: when a Chromecast device is selected, resolve the current playable cast URL and load it through the active Google Cast session.
 
-Likely files:
+Status: complete.
 
-- Google Cast session/media client wrapper
+- `feature/plugin/googlecast/GoogleCastMediaLoader.kt`
 - `VideoPlayerOverlay.kt`
 - Focused tests for media metadata/request construction and URL fallback decisions
+
+Result on 2026-05-26:
+
+- `VideoPlayerOverlay` now calls enabled cast plugins through `CastPluginApi` after resolving the same cast URL path used by DLNA/SSDP.
+- The Google Cast plugin builds CAF `MediaLoadRequestData` with buffered stream type, `video/mp4` default content type, autoplay, and title/subtitle metadata policy.
+- MediaRouter, CastContext, session polling, and RemoteMediaClient load calls run on the main dispatcher with a bounded session wait.
+- Verified with `.\gradlew.bat :app:testDebugUnitTest --tests "*GoogleCast*" --no-daemon`.
+- Verified with `.\gradlew.bat :app:testDebugUnitTest --tests "*Cast*" --no-daemon`.
 
 ### Slice 4: Review, Verification, And Cleanup
 
@@ -128,3 +137,4 @@ Verification ladder:
 - 2026-05-26: Completed Slice 0 documentation and focused Cast baseline.
 - 2026-05-26: Completed Slice 1 Google Cast plugin shell, CAF wiring, and focused policy tests.
 - 2026-05-26: Completed Slice 2 Chromecast route discovery and device-list selection UI aligned with existing DLNA rows.
+- 2026-05-26: Corrected the plugin boundary so Google Cast discovery/loading lives behind `CastPluginApi`; completed Slice 3 Chromecast media loading.

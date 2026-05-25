@@ -1,4 +1,4 @@
-package com.android.purebilibili.feature.cast
+package com.android.purebilibili.feature.plugin.googlecast
 
 import android.content.Context
 import com.google.android.gms.cast.CastMediaControlIntent
@@ -10,7 +10,7 @@ object CastReceiverPolicy {
     const val DEFAULT_RECEIVER_APP_ID: String =
         CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID
     const val OPTIONS_PROVIDER_CLASS_NAME: String =
-        "com.android.purebilibili.feature.cast.CastOptionsProvider"
+        "com.android.purebilibili.feature.plugin.googlecast.CastOptionsProvider"
 
     fun resolveReceiverApplicationId(): String = DEFAULT_RECEIVER_APP_ID
 

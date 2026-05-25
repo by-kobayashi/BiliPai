@@ -1,4 +1,4 @@
-package com.android.purebilibili.feature.cast
+package com.android.purebilibili.feature.plugin.googlecast
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -20,7 +20,7 @@ class CastOptionsProviderPolicyTest {
     @Test
     fun `provider class name constant matches the actual class`() {
         assertEquals(
-            "com.android.purebilibili.feature.cast.CastOptionsProvider",
+            "com.android.purebilibili.feature.plugin.googlecast.CastOptionsProvider",
             CastReceiverPolicy.OPTIONS_PROVIDER_CLASS_NAME
         )
     }

@@ -41,7 +41,7 @@ import com.android.purebilibili.feature.plugin.DanmakuEnhancePlugin
 import com.android.purebilibili.feature.plugin.EyeProtectionPlugin
 import com.android.purebilibili.feature.plugin.HomeFeedAnonymizerPlugin
 import com.android.purebilibili.feature.plugin.SponsorBlockPlugin
-import com.android.purebilibili.feature.plugin.GoogleCastPlugin
+import com.android.purebilibili.feature.plugin.googlecast.GoogleCastPlugin
 import com.android.purebilibili.feature.plugin.TodayWatchPlugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking

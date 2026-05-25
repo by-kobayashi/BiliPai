@@ -14,8 +14,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.android.purebilibili.core.plugin.CastPluginApi
+import com.android.purebilibili.core.plugin.CastPluginRoute
 import com.android.purebilibili.core.plugin.PluginManager
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+
+private data class PluginRouteEntry(
+    val plugin: CastPluginApi,
+    val route: CastPluginRoute
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,7 +31,7 @@ fun DeviceListDialog(
     onDismissRequest: () -> Unit,
     onDeviceSelected: (CastDeviceInfo) -> Unit,
     onSsdpDeviceSelected: (SsdpDiscovery.SsdpDevice) -> Unit = {},
-    onGoogleCastDeviceSelected: (GoogleCastRouteInfo) -> Unit = {}
+    onPluginCastDeviceSelected: (CastPluginApi, CastPluginRoute) -> Unit = { _, _ -> }
 ) {
     val devices by DlnaManager.devices.collectAsState()
     val isConnected by DlnaManager.isConnected.collectAsState()
@@ -42,26 +50,28 @@ fun DeviceListDialog(
         )
     }
 
-    // Google Cast routes
+    // Generic cast plugin routes
     val allPlugins by PluginManager.pluginsFlow.collectAsState()
-    val gcPluginEnabled = remember(allPlugins) { isGoogleCastPluginEnabled(allPlugins) }
-    val rawGcRoutes by GoogleCastRouteManager.routes.collectAsState()
-    val visibleGcRoutes = remember(gcPluginEnabled, rawGcRoutes) {
-        resolveVisibleGoogleCastRoutes(gcPluginEnabled, rawGcRoutes)
+    val castPlugins = remember(allPlugins) {
+        allPlugins.filter { it.enabled }.mapNotNull { it.plugin as? CastPluginApi }
     }
 
-    // Start/stop Google Cast discovery
-    LaunchedEffect(gcPluginEnabled) {
-        if (gcPluginEnabled) {
-            GoogleCastRouteManager.startDiscovery(context)
-        } else {
-            GoogleCastRouteManager.stopDiscovery()
+    val pluginRouteEntries by produceState(emptyList<PluginRouteEntry>(), castPlugins) {
+        if (castPlugins.isEmpty()) {
+            value = emptyList()
+            return@produceState
         }
+        combine(castPlugins.map { it.routes }) { arrays ->
+            arrays.flatMapIndexed { index, routes ->
+                routes.map { PluginRouteEntry(castPlugins[index], it) }
+            }
+        }.collect { value = it }
     }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(castPlugins) {
+        castPlugins.forEach { it.startRouteDiscovery(context) }
         onDispose {
-            GoogleCastRouteManager.stopDiscovery()
+            castPlugins.forEach { it.stopRouteDiscovery() }
         }
     }
 
@@ -103,7 +113,7 @@ fun DeviceListDialog(
             }
         },
         text = {
-            val hasDevices = devices.isNotEmpty() || visibleSsdpDevices.isNotEmpty() || visibleGcRoutes.isNotEmpty()
+            val hasDevices = devices.isNotEmpty() || visibleSsdpDevices.isNotEmpty() || pluginRouteEntries.isNotEmpty()
 
             if (!hasDevices && !isSearching) {
                 Box(Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
@@ -151,14 +161,16 @@ fun DeviceListDialog(
                                 .fillMaxWidth()
                         )
                     }
-                    // Google Cast 设备
-                    items(visibleGcRoutes) { gcRoute ->
+                    // Plugin cast routes
+                    items(pluginRouteEntries, key = { "${it.plugin.id}:${it.route.routeId}" }) { entry ->
+                        val plugin = entry.plugin
+                        val route = entry.route
                         ListItem(
-                            headlineContent = { Text(gcRoute.name) },
-                            supportingContent = { Text(gcRoute.description ?: "Google Cast") },
-                            leadingContent = { Icon(Icons.Rounded.Cast, null) },
+                            headlineContent = { Text(route.name) },
+                            supportingContent = { Text(route.description ?: plugin.name) },
+                            leadingContent = { Icon(route.icon ?: plugin.icon ?: Icons.Rounded.Cast, null) },
                             modifier = Modifier
-                                .clickable { onGoogleCastDeviceSelected(gcRoute) }
+                                .clickable { onPluginCastDeviceSelected(plugin, route) }
                                 .fillMaxWidth()
                         )
                     }

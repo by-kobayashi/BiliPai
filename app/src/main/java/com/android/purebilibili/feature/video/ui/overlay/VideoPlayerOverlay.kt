@@ -92,6 +92,7 @@ import com.android.purebilibili.feature.video.usecase.playPlayerFromUserAction
 import com.android.purebilibili.feature.video.usecase.seekPlayerFromUserAction
 import com.android.purebilibili.feature.cast.DeviceListDialog
 import com.android.purebilibili.feature.cast.DlnaManager
+import com.android.purebilibili.core.plugin.CastPluginMediaRequest
 import com.android.purebilibili.feature.cast.LocalProxyServer
 import com.android.purebilibili.feature.cast.SsdpCastClient
 import androidx.compose.animation.core.LinearEasing
@@ -1844,9 +1845,27 @@ fun VideoPlayerOverlay(
                         android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
                     }
                 },
-                onGoogleCastDeviceSelected = {
+                onPluginCastDeviceSelected = { plugin, route ->
                     showCastDialog = false
-                    android.widget.Toast.makeText(context, "Google Cast 播放将在下一步接入", android.widget.Toast.LENGTH_SHORT).show()
+                    scope.launch {
+                        val castUrl = resolveCastUrlOrNull()
+                        if (castUrl == null) {
+                            android.widget.Toast.makeText(context, "投屏地址解析失败", android.widget.Toast.LENGTH_SHORT).show()
+                            return@launch
+                        }
+                        val mediaRequest = CastPluginMediaRequest(
+                            url = castUrl,
+                            title = videoTitle,
+                            creator = videoOwnerName
+                        )
+                        val result = plugin.cast(context, route, mediaRequest)
+                        val message = if (result.isSuccess) {
+                            "已发送投屏指令"
+                        } else {
+                            "投屏失败：${result.exceptionOrNull()?.message ?: "未知错误"}"
+                        }
+                        android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
+                    }
                 }
             )
         }
