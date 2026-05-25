@@ -14,11 +14,12 @@ internal object GoogleCastRouteManager {
     private val _routes = MutableStateFlow<List<CastPluginRoute>>(emptyList())
     val routes: StateFlow<List<CastPluginRoute>> = _routes.asStateFlow()
 
+    private val _isDiscovering = MutableStateFlow(false)
+    val isDiscovering: StateFlow<Boolean> = _isDiscovering.asStateFlow()
+
     private var mediaRouter: MediaRouter? = null
     private var selector: MediaRouteSelector? = null
     private var callback: MediaRouter.Callback? = null
-
-    val isDiscovering: Boolean get() = mediaRouter != null
 
     private val castControlCategory: String by lazy {
         CastMediaControlIntent.categoryForCast(
@@ -29,7 +30,7 @@ internal object GoogleCastRouteManager {
     private val routeCache = mutableMapOf<String, MediaRouter.RouteInfo>()
 
     fun startDiscovery(context: Context) {
-        if (isDiscovering) return
+        if (mediaRouter != null) return
         val router = MediaRouter.getInstance(context)
         val sel = MediaRouteSelector.Builder()
             .addControlCategory(castControlCategory)
@@ -51,7 +52,9 @@ internal object GoogleCastRouteManager {
         mediaRouter = router
         selector = sel
         callback = cb
+        _isDiscovering.value = true
         updateRoutes(router)
+        _isDiscovering.value = false
     }
 
     fun stopDiscovery() {
@@ -61,6 +64,7 @@ internal object GoogleCastRouteManager {
         mediaRouter = null
         selector = null
         callback = null
+        _isDiscovering.value = false
         _routes.value = emptyList()
     }
 

@@ -94,6 +94,7 @@ report.md
 !docs/
 docs/*
 !docs/GOOGLE_CAST_PLUGIN.md
+!docs/DLNA_CAST_PLUGIN.md
 !docs/images/
 !docs/images/screenshot*.png
 !docs/wiki/

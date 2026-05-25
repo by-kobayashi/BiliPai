@@ -35,13 +35,21 @@ data class CastPluginPlaybackState(
 private val defaultPlaybackState: StateFlow<CastPluginPlaybackState> =
     MutableStateFlow(CastPluginPlaybackState()).asStateFlow()
 
+private val defaultIsDiscovering: StateFlow<Boolean> =
+    MutableStateFlow(false).asStateFlow()
+
 interface CastPluginApi : Plugin {
     val routes: StateFlow<List<CastPluginRoute>>
     val playbackState: StateFlow<CastPluginPlaybackState>
         get() = defaultPlaybackState
+    val isDiscovering: StateFlow<Boolean>
+        get() = defaultIsDiscovering
 
     fun startRouteDiscovery(context: Context)
     fun stopRouteDiscovery()
+    fun refreshRouteDiscovery(context: Context) {
+        startRouteDiscovery(context)
+    }
     suspend fun cast(
         context: Context,
         route: CastPluginRoute,

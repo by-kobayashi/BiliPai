@@ -41,6 +41,7 @@ class GoogleCastPlugin : CastPluginApi {
 
     override val routes: StateFlow<List<CastPluginRoute>> = GoogleCastRouteManager.routes
     override val playbackState: StateFlow<CastPluginPlaybackState> = GoogleCastPlaybackController.playbackState
+    override val isDiscovering: StateFlow<Boolean> = GoogleCastRouteManager.isDiscovering
 
     override fun startRouteDiscovery(context: Context) {
         GoogleCastRouteManager.startDiscovery(context)

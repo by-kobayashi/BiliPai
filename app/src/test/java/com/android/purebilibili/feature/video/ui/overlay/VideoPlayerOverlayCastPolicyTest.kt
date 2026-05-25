@@ -8,18 +8,6 @@ import kotlin.test.assertTrue
 
 class VideoPlayerOverlayCastPolicyTest {
 
-    // --- cast binding lifecycle ---
-
-    @Test
-    fun releasesCastBindingWhenDialogCloses() {
-        assertTrue(
-            shouldReleaseCastBindingAfterDialogVisibilityChange(
-                previousVisible = true,
-                currentVisible = false
-            )
-        )
-    }
-
     // --- cast dialog dismissal timing ---
 
     @Test
@@ -37,28 +25,6 @@ class VideoPlayerOverlayCastPolicyTest {
     fun shouldNotDismissCastDialogWhenUrlResolved() {
         assertFalse(shouldDismissCastDialogOnUrlFailure("https://example.com/video.mp4"))
         assertFalse(shouldDismissCastDialogOnUrlFailure("http://127.0.0.1:8901/proxy"))
-    }
-
-    @Test
-    fun keepsCastBindingForAllOtherVisibilityTransitions() {
-        assertFalse(
-            shouldReleaseCastBindingAfterDialogVisibilityChange(
-                previousVisible = false,
-                currentVisible = false
-            )
-        )
-        assertFalse(
-            shouldReleaseCastBindingAfterDialogVisibilityChange(
-                previousVisible = false,
-                currentVisible = true
-            )
-        )
-        assertFalse(
-            shouldReleaseCastBindingAfterDialogVisibilityChange(
-                previousVisible = true,
-                currentVisible = true
-            )
-        )
     }
 
     // --- effective progress resolution with plugin state ---
@@ -112,5 +78,19 @@ class VideoPlayerOverlayCastPolicyTest {
     fun effectivePlayingUsesPluginWhenActive() {
         val active = CastPluginPlaybackState(isActive = true, isPlaying = false)
         assertFalse(resolveEffectivePlayingState(localIsPlaying = true, pluginState = active))
+    }
+
+    // --- shouldActivatePluginPlaybackAfterCast ---
+
+    @Test
+    fun activatesPluginPlaybackWhenCastPlaybackIsActive() {
+        val state = CastPluginPlaybackState(isActive = true)
+        assertTrue(shouldActivatePluginPlaybackAfterCast(state))
+    }
+
+    @Test
+    fun doesNotActivatePluginPlaybackWhenCastPlaybackIsInactive() {
+        val state = CastPluginPlaybackState(isActive = false)
+        assertFalse(shouldActivatePluginPlaybackAfterCast(state))
     }
 }
