@@ -20,6 +20,7 @@ class HomeNotInterestedPolicyTest {
 
         assertEquals("BV1", action.bvid)
         assertTrue(action.shouldBlockCreator)
+        assertTrue(action.shouldSyncCreatorToBilibiliBlockedList)
         assertEquals(42L, action.creatorMid)
         assertEquals("UP-X", action.creatorName)
         assertEquals("face.jpg", action.creatorFace)
@@ -35,6 +36,7 @@ class HomeNotInterestedPolicyTest {
         )
 
         assertFalse(action.shouldBlockCreator)
+        assertFalse(action.shouldSyncCreatorToBilibiliBlockedList)
         assertEquals(0L, action.creatorMid)
     }
 

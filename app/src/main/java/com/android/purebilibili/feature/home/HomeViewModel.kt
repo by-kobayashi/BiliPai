@@ -706,11 +706,23 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 recordTodayWatchNegativeFeedback(video)
                 val action = resolveHomeNotInterestedAction(video)
                 if (action.shouldBlockCreator) {
-                    blockedUpRepository.blockUp(
-                        mid = action.creatorMid,
-                        name = action.creatorName,
-                        face = action.creatorFace
-                    )
+                    val writeResult = if (action.shouldSyncCreatorToBilibiliBlockedList) {
+                        blockedUpRepository.blockUpWithBilibiliSync(
+                            mid = action.creatorMid,
+                            name = action.creatorName,
+                            face = action.creatorFace
+                        )
+                    } else {
+                        blockedUpRepository.blockUp(
+                            mid = action.creatorMid,
+                            name = action.creatorName,
+                            face = action.creatorFace
+                        )
+                        null
+                    }
+                    writeResult?.message?.let { message ->
+                        com.android.purebilibili.core.util.Logger.d("HomeVM", message)
+                    }
                     blockedMids = blockedMids + action.creatorMid
                     pendingNotInterestedRefilterBvids += bvid
                 }
@@ -735,14 +747,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         viewModelScope.launch {
-            blockedUpRepository.blockUp(
+            val writeResult = blockedUpRepository.blockUpWithBilibiliSync(
                 mid = action.creatorMid,
                 name = action.creatorName,
                 face = action.creatorFace
             )
             blockedMids = blockedMids + action.creatorMid
             reFilterAllContent()
-            android.widget.Toast.makeText(getApplication(), "已屏蔽 ${action.creatorName}", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(getApplication(), writeResult.message, android.widget.Toast.LENGTH_SHORT).show()
         }
     }
 
