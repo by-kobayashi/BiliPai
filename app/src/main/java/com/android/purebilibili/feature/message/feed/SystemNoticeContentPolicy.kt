@@ -5,7 +5,6 @@ internal data class SystemNoticeContentSegment(
     val link: String? = null
 )
 
-private val systemNoticePlaceholderRegex = Regex("#\\{([^}]*)}\\{([^}]*)}")
 private val systemNoticePlainLinkRegex = Regex(
     "(https?://[^\\s]+|www\\.[^\\s]+|BV[a-zA-Z0-9]{10}|av\\d+)",
     setOf(RegexOption.IGNORE_CASE)
@@ -16,23 +15,32 @@ internal fun parseSystemNoticeContentSegments(content: String): List<SystemNotic
 
     val segments = mutableListOf<SystemNoticeContentSegment>()
     var lastIndex = 0
-    systemNoticePlaceholderRegex.findAll(content).forEach { match ->
-        if (match.range.first > lastIndex) {
+    var searchIndex = 0
+    while (searchIndex < content.length) {
+        val markerStart = content.indexOf("#{", startIndex = searchIndex)
+        if (markerStart < 0) break
+        val labelEnd = content.indexOf("}{", startIndex = markerStart + 2)
+        if (labelEnd < 0) break
+        val linkEnd = content.indexOf('}', startIndex = labelEnd + 2)
+        if (linkEnd < 0) break
+
+        if (markerStart > lastIndex) {
             appendSystemNoticePlainSegments(
                 target = segments,
-                text = content.substring(lastIndex, match.range.first)
+                text = content.substring(lastIndex, markerStart)
             )
         }
 
-        val label = match.groupValues[1].trim()
-        val link = normalizeSystemNoticeLink(match.groupValues[2])
+        val label = content.substring(markerStart + 2, labelEnd).trim()
+        val link = normalizeSystemNoticeLink(content.substring(labelEnd + 2, linkEnd))
         if (label.isNotEmpty()) {
             segments += SystemNoticeContentSegment(
                 text = label,
                 link = link.takeIf { it.isNotBlank() }
             )
         }
-        lastIndex = match.range.last + 1
+        lastIndex = linkEnd + 1
+        searchIndex = lastIndex
     }
 
     if (lastIndex < content.length) {
