@@ -55,7 +55,6 @@ internal fun resolveBottomBarGlassMaterialSpec(
     return when (preset) {
         BottomBarLiquidGlassPreset.BILIPAI_TUNED -> bilipaiTunedBottomBarGlassMaterial()
         BottomBarLiquidGlassPreset.IOS26_REFINED -> ios26BottomBarGlassMaterial(
-            isDarkTheme = isDarkTheme,
             scrollProgress = scrollProgress,
             motionProgress = motionProgress,
             pressProgress = pressProgress
@@ -93,7 +92,6 @@ private fun bilipaiTunedBottomBarGlassMaterial(): BottomBarGlassMaterialSpec =
     )
 
 private fun ios26BottomBarGlassMaterial(
-    isDarkTheme: Boolean,
     scrollProgress: Float,
     motionProgress: Float,
     pressProgress: Float
@@ -104,15 +102,15 @@ private fun ios26BottomBarGlassMaterial(
         motionProgress.coerceIn(0f, 1f) * 0.45f,
         pressProgress.coerceIn(0f, 1f) * 0.35f
     )
-    // 可读性兜底只跟随滚动进度，避免滚动停止时由 Boolean 边沿造成整层闪烁。
-    val readabilityAlpha = lerp(0f, 0.05f, clampedScrollProgress)
+    // iOS26 预设滚动时用轻白色膜整体提亮；进度仍连续回落，避免停止瞬间闪烁。
+    val brightnessAlpha = lerp(0f, 0.07f, clampedScrollProgress)
     return BottomBarGlassMaterialSpec(
         blurRadiusDp = lerp(7f, 6f, activity),
         vibrancy = false,
         shellRefractionHeightDp = 0f,
         shellRefractionAmountDp = 0f,
         shellChromaticAberration = false,
-        foregroundTint = (if (isDarkTheme) Color.Black else Color.White).copy(alpha = readabilityAlpha),
+        foregroundTint = Color.White.copy(alpha = brightnessAlpha),
         highlightWidthScale = lerp(1.2f, 1.3f, activity),
         shadowAlphaScale = 0.72f,
         innerRimGlow = BottomBarInnerRimGlowSpec(radiusDp = 5f, alpha = 0.09f),

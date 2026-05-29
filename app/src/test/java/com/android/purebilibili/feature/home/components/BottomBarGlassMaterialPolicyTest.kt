@@ -140,7 +140,7 @@ class BottomBarGlassMaterialPolicyTest {
         )
 
         assertTrue(scrolling.foregroundTint.alpha > idle.foregroundTint.alpha)
-        assertEquals(0.05f, scrolling.foregroundTint.alpha, 0.001f)
+        assertEquals(0.07f, scrolling.foregroundTint.alpha, 0.001f)
         assertEquals(idle.shellShader!!.thicknessDp, scrolling.shellShader!!.thicknessDp)
         assertEquals(
             resolveBottomBarEffectiveBackdropPresetProgress(
@@ -152,6 +152,23 @@ class BottomBarGlassMaterialPolicyTest {
                 motionProgress = 0.5f, pressProgress = 0.2f
             )
         )
+    }
+
+    @Test
+    fun `ios26 scroll tint brightens dark theme instead of dimming it`() {
+        val darkScrolling = resolveBottomBarGlassMaterialSpec(
+            preset = BottomBarLiquidGlassPreset.IOS26_REFINED,
+            isDarkTheme = true,
+            isScrolling = true,
+            glassEnabled = true,
+            motionProgress = 0f,
+            pressProgress = 0f
+        )
+
+        assertEquals(Color.White.red, darkScrolling.foregroundTint.red, 0.001f)
+        assertEquals(Color.White.green, darkScrolling.foregroundTint.green, 0.001f)
+        assertEquals(Color.White.blue, darkScrolling.foregroundTint.blue, 0.001f)
+        assertEquals(0.07f, darkScrolling.foregroundTint.alpha, 0.001f)
     }
 
     @Test
@@ -167,7 +184,7 @@ class BottomBarGlassMaterialPolicyTest {
         )
 
         assertEquals(6.5f, settling.blurRadiusDp!!, 0.001f)
-        assertEquals(0.025f, settling.foregroundTint.alpha, 0.002f)
+        assertEquals(0.035f, settling.foregroundTint.alpha, 0.002f)
         assertEquals(1.25f, settling.highlightWidthScale, 0.001f)
     }
 
