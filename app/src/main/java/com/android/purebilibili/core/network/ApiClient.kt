@@ -1320,6 +1320,54 @@ data class DynamicThumbRequest(
     val from_spmid: String = "333.999.0.0"
 )
 
+@kotlinx.serialization.Serializable
+data class DynamicRepostRequest(
+    val dyn_req: DynamicRepostDynReq,
+    val web_repost_src: DynamicWebRepostSource
+)
+
+@kotlinx.serialization.Serializable
+data class DynamicRepostDynReq(
+    val content: DynamicRepostContent,
+    val scene: Int = 4,
+    val attach_card: kotlinx.serialization.json.JsonObject?
+)
+
+@kotlinx.serialization.Serializable
+data class DynamicRepostContent(
+    val contents: List<DynamicRepostContentItem>
+)
+
+@kotlinx.serialization.Serializable
+data class DynamicRepostContentItem(
+    val raw_text: String,
+    val type: Int = 1,
+    val biz_id: String = ""
+)
+
+@kotlinx.serialization.Serializable
+data class DynamicWebRepostSource(
+    val dyn_id_str: String
+)
+
+internal fun buildDynamicRepostRequest(
+    dynamicId: String,
+    content: String
+): DynamicRepostRequest {
+    val contents = if (content.isBlank()) {
+        emptyList()
+    } else {
+        listOf(DynamicRepostContentItem(raw_text = content))
+    }
+    return DynamicRepostRequest(
+        dyn_req = DynamicRepostDynReq(
+            content = DynamicRepostContent(contents = contents),
+            attach_card = null
+        ),
+        web_repost_src = DynamicWebRepostSource(dyn_id_str = dynamicId)
+    )
+}
+
 private const val DYNAMIC_FEED_FEATURES =
     "itemOpusStyle,listOnlyfans"
 
@@ -1416,14 +1464,14 @@ interface DynamicApi {
         @retrofit2.http.Body body: DynamicThumbRequest
     ): SimpleApiResponse
     
-    //  [新增] 转发动态
-    @retrofit2.http.FormUrlEncoded
+    //  转发动态。接口按 Web 端 JSON dyn_req 协议提交，表单字段会导致请求失败后弹窗卡住。
     @retrofit2.http.POST("x/dynamic/feed/create/dyn")
     suspend fun repostDynamic(
-        @retrofit2.http.Field("dyn_id_str") dynIdStr: String,
-        @retrofit2.http.Field("dyn_type") dynType: Int = 1,
-        @retrofit2.http.Field("content") content: String = "",
-        @retrofit2.http.Field("csrf") csrf: String
+        @Query("csrf") csrf: String,
+        @Query("platform") platform: String = "web",
+        @Query("x-bili-device-req-json") deviceRequestJson: String = "{\"platform\":\"web\",\"device\":\"pc\"}",
+        @Query("x-bili-web-req-json") webRequestJson: String = "{\"spm_id\":\"333.1330\"}",
+        @retrofit2.http.Body body: DynamicRepostRequest
     ): SimpleApiResponse
 }
 

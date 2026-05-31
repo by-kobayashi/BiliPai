@@ -8,6 +8,7 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.purebilibili.core.network.NetworkModule
+import com.android.purebilibili.core.network.buildDynamicRepostRequest
 import com.android.purebilibili.core.store.SettingsManager
 import com.android.purebilibili.core.util.appendDistinctByKey
 import com.android.purebilibili.core.util.prependDistinctByKey
@@ -1257,13 +1258,23 @@ class DynamicViewModel(application: Application) : AndroidViewModel(application)
     fun repostDynamic(dynamicId: String, content: String = "", onResult: (Boolean, String) -> Unit) {
         viewModelScope.launch {
             try {
+                if (dynamicId.isBlank()) {
+                    onResult(false, "无法转发该动态")
+                    return@launch
+                }
                 val csrf = com.android.purebilibili.core.store.TokenManager.csrfCache
                 if (csrf.isNullOrEmpty()) {
                     onResult(false, "请先登录")
                     return@launch
                 }
                 val response = com.android.purebilibili.core.network.NetworkModule.dynamicApi
-                    .repostDynamic(dynIdStr = dynamicId, content = content, csrf = csrf)
+                    .repostDynamic(
+                        csrf = csrf,
+                        body = buildDynamicRepostRequest(
+                            dynamicId = dynamicId,
+                            content = content
+                        )
+                    )
                 if (response.code == 0) {
                     onResult(true, "转发成功")
                 } else {

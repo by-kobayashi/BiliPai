@@ -192,10 +192,11 @@ fun DynamicDetailScreen(
                 showRepostDialog?.let { repostDynamicId ->
                     RepostDialog(
                         onDismiss = { showRepostDialog = null },
-                        onRepost = { content ->
+                        onRepost = { content: String, onComplete: (Boolean) -> Unit ->
                             interactionViewModel.repostDynamic(repostDynamicId, content) { success, msg ->
                                 android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
                                 if (success) showRepostDialog = null
+                                onComplete(success)
                             }
                         }
                     )

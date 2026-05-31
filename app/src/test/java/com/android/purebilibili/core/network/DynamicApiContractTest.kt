@@ -1,10 +1,16 @@
 package com.android.purebilibili.core.network
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import retrofit2.http.Body
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Query
 import retrofit2.http.QueryMap
 
@@ -34,6 +40,57 @@ class DynamicApiContractTest {
 
         assertEquals("333.1369.0.0", request.spmid)
         assertEquals("333.999.0.0", request.from_spmid)
+    }
+
+    @Test
+    fun repostDynamic_usesJsonDynReqBodyAndWebQueries() {
+        val method = DynamicApi::class.java.methods.first { it.name == "repostDynamic" }
+        val post = method.getAnnotation(POST::class.java)
+
+        assertEquals("x/dynamic/feed/create/dyn", post?.value)
+        assertFalse(method.isAnnotationPresent(FormUrlEncoded::class.java))
+
+        val queryNames = method.parameterAnnotations
+            .mapNotNull { annotations ->
+                annotations.filterIsInstance<Query>().firstOrNull()?.value
+            }
+
+        assertTrue("csrf" in queryNames)
+        assertTrue("platform" in queryNames)
+        assertTrue("x-bili-device-req-json" in queryNames)
+        assertTrue("x-bili-web-req-json" in queryNames)
+
+        val bodyParamIndex = method.parameterAnnotations.indexOfFirst { annotations ->
+            annotations.any { it is Body }
+        }
+        assertEquals(DynamicRepostRequest::class.java, method.parameterTypes[bodyParamIndex])
+        assertTrue(method.parameterAnnotations.none { annotations ->
+            annotations.any { it is Field }
+        })
+    }
+
+    @Test
+    fun buildDynamicRepostRequest_emptyContentMatchesWebRepostPayload() {
+        val request = buildDynamicRepostRequest(dynamicId = "977045888118554640", content = "")
+        val json = Json.encodeToString(request)
+
+        assertEquals("977045888118554640", request.web_repost_src.dyn_id_str)
+        assertEquals(4, request.dyn_req.scene)
+        assertTrue(request.dyn_req.content.contents.isEmpty())
+        assertTrue(json.contains("\"attach_card\":null"))
+    }
+
+    @Test
+    fun buildDynamicRepostRequest_textContentUsesPlainTextContentItem() {
+        val request = buildDynamicRepostRequest(
+            dynamicId = "977045888118554640",
+            content = "转发动态"
+        )
+        val contentItem = request.dyn_req.content.contents.single()
+
+        assertEquals("转发动态", contentItem.raw_text)
+        assertEquals(1, contentItem.type)
+        assertEquals("", contentItem.biz_id)
     }
 
     @Test

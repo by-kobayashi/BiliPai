@@ -798,10 +798,11 @@ fun DynamicScreen(
     showRepostDialog?.let { dynamicId ->
         RepostDialog(
             onDismiss = { showRepostDialog = null },
-            onRepost = { content ->
+            onRepost = { content: String, onComplete: (Boolean) -> Unit ->
                 viewModel.repostDynamic(dynamicId, content) { success, msg ->
                     android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
                     if (success) showRepostDialog = null
+                    onComplete(success)
                 }
             }
         )
