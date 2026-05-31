@@ -76,6 +76,41 @@ class PartitionScreenStructureTest {
         )
     }
 
+    @Test
+    fun `side rail item color follows moving indicator position`() {
+        assertTrue(resolvePartitionSideRailItemSelectionProgress(itemIndex = 3, indicatorPosition = 3f) == 1f)
+        assertTrue(resolvePartitionSideRailItemSelectionProgress(itemIndex = 3, indicatorPosition = 3.5f) == 0.5f)
+        assertTrue(resolvePartitionSideRailItemSelectionProgress(itemIndex = 3, indicatorPosition = 4.2f) == 0f)
+    }
+
+    @Test
+    fun `video list push follows long press drag then can return to rest`() {
+        assertTrue(
+            resolvePartitionVideoListPushPx(
+                pressProgress = 1f,
+                dragOffsetPx = 0f,
+                itemSlotHeightPx = 52f,
+                maxPushPx = 8f
+            ) == 8f
+        )
+        assertTrue(
+            resolvePartitionVideoListPushPx(
+                pressProgress = 0f,
+                dragOffsetPx = 52f,
+                itemSlotHeightPx = 52f,
+                maxPushPx = 8f
+            ) > 0f
+        )
+        assertTrue(
+            resolvePartitionVideoListPushPx(
+                pressProgress = 0f,
+                dragOffsetPx = 0f,
+                itemSlotHeightPx = 52f,
+                maxPushPx = 8f
+            ) == 0f
+        )
+    }
+
     private fun loadSource(path: String): String {
         val normalizedPath = path.removePrefix("app/")
         val sourceFile = listOf(
