@@ -27,7 +27,7 @@ class HomeSettingsUiPresetPolicyTest {
     }
 
     @Test
-    fun androidNativeLiquidGlassOptIn_appliesOnlyToBottomHomeSettings() {
+    fun androidNativeLiquidGlassOptIn_appliesOnlyToBottomHomeSettingsAndKeepsTopDockIndependent() {
         val disabled = resolveEffectiveHomeSettings(
             homeSettings = HomeSettings(
                 isTopBarLiquidGlassEnabled = true,
@@ -37,7 +37,7 @@ class HomeSettingsUiPresetPolicyTest {
             uiPreset = UiPreset.MD3
         )
 
-        assertFalse(disabled.isTopBarLiquidGlassEnabled)
+        assertTrue(disabled.isTopBarLiquidGlassEnabled)
         assertFalse(disabled.isBottomBarLiquidGlassEnabled)
 
         val enabled = resolveEffectiveHomeSettings(
@@ -49,7 +49,7 @@ class HomeSettingsUiPresetPolicyTest {
             uiPreset = UiPreset.MD3
         )
 
-        assertFalse(enabled.isTopBarLiquidGlassEnabled)
+        assertTrue(enabled.isTopBarLiquidGlassEnabled)
         assertTrue(enabled.isBottomBarLiquidGlassEnabled)
     }
 }

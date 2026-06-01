@@ -913,9 +913,13 @@ class iOSHomeHeaderVisualPolicyTest {
     }
 
     @Test
-    fun `home top respects disabled bottom bar liquid glass`() {
+    fun `home top respects independent disabled top dock liquid glass`() {
         val appearance = resolveHomeTopLinkedBottomBarAppearance(
-            homeSettings = HomeSettings(isBottomBarLiquidGlassEnabled = false),
+            homeSettings = HomeSettings(
+                isTopBarLiquidGlassEnabled = false,
+                isBottomBarLiquidGlassEnabled = true,
+                androidNativeLiquidGlassEnabled = true
+            ),
             uiPreset = UiPreset.MD3,
             androidNativeVariant = AndroidNativeVariant.MIUIX
         )
@@ -926,13 +930,13 @@ class iOSHomeHeaderVisualPolicyTest {
     }
 
     @Test
-    fun `top chrome follows effective shared liquid glass setting`() {
+    fun `top chrome follows independent top dock liquid glass setting`() {
         assertTrue(
             resolveHomeTopChromeLiquidGlassEnabled(
                 homeSettings = HomeSettings(
-                    isTopBarLiquidGlassEnabled = false,
-                    isBottomBarLiquidGlassEnabled = true,
-                    androidNativeLiquidGlassEnabled = true
+                    isTopBarLiquidGlassEnabled = true,
+                    isBottomBarLiquidGlassEnabled = false,
+                    androidNativeLiquidGlassEnabled = false
                 ),
                 uiPreset = UiPreset.MD3
             )
@@ -940,8 +944,8 @@ class iOSHomeHeaderVisualPolicyTest {
         assertFalse(
             resolveHomeTopChromeLiquidGlassEnabled(
                 homeSettings = HomeSettings(
-                    isTopBarLiquidGlassEnabled = true,
-                    isBottomBarLiquidGlassEnabled = false,
+                    isTopBarLiquidGlassEnabled = false,
+                    isBottomBarLiquidGlassEnabled = true,
                     androidNativeLiquidGlassEnabled = true
                 ),
                 uiPreset = UiPreset.MD3
@@ -950,8 +954,8 @@ class iOSHomeHeaderVisualPolicyTest {
         assertTrue(
             resolveHomeTopChromeLiquidGlassEnabled(
                 homeSettings = HomeSettings(
-                    isTopBarLiquidGlassEnabled = false,
-                    isBottomBarLiquidGlassEnabled = true,
+                    isTopBarLiquidGlassEnabled = true,
+                    isBottomBarLiquidGlassEnabled = false,
                     androidNativeLiquidGlassEnabled = false
                 ),
                 uiPreset = UiPreset.IOS

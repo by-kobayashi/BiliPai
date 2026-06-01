@@ -659,7 +659,7 @@ fun HomeScreen(
             uiPreset = uiPreset,
             headerBlurEnabled = baseIsHeaderBlurEnabled,
             bottomBarBlurEnabled = baseIsBottomBarBlurEnabled,
-            topBarLiquidGlassEnabled = false,
+            topBarLiquidGlassEnabled = homeSettings.isTopBarLiquidGlassEnabled,
             bottomBarLiquidGlassEnabled = baseBottomBarLiquidGlassEnabled,
             androidNativeLiquidGlassEnabled = homeSettings.androidNativeLiquidGlassEnabled,
             cardAnimationEnabled = baseCardAnimationEnabled,

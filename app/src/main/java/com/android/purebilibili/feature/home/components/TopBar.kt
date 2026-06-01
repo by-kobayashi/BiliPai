@@ -127,6 +127,8 @@ internal fun resolveTopTabDockIndicatorHorizontalGapDp(hasOuterChromeSurface: Bo
 internal fun resolveTopTabDockIndicatorVerticalGapDp(hasOuterChromeSurface: Boolean): Float =
     if (hasOuterChromeSurface) 10f else 4f
 
+internal fun shouldUseTopTabIndicatorRefraction(): Boolean = false
+
 internal fun resolveTopTabDockIndicatorWidthDp(
     itemWidthDp: Float,
     horizontalGapDp: Float,
@@ -1042,6 +1044,7 @@ private fun LightweightHomeTopTabs(
             (isLiquidGlassEnabled || backdrop != null) &&
                 !skinPlainStyle &&
                 !hasSkinStickerIcons
+        val useTopTabIndicatorRefractionLens = shouldUseTopTabIndicatorRefraction()
         val topTabContentBackdrop = rememberLayerBackdrop()
         val topTabIndicatorContentBackdrop = if (shouldPrimeTopTabLiquidGlassCapture && backdrop != null) {
             rememberCombinedBackdrop(backdrop, topTabContentBackdrop)
@@ -1160,7 +1163,8 @@ private fun LightweightHomeTopTabs(
                             indicatorLayerScaleProgress = topTabIndicatorLayerScaleProgress,
                             indicatorLayerScaleTransform = topTabIndicatorLayerScaleTransform,
                             bottomBarMotionSpec = topTabDragMotionSpec,
-                            isDarkTheme = isDarkTheme
+                            isDarkTheme = isDarkTheme,
+                            useRefractionLens = useTopTabIndicatorRefractionLens
                         )
                     } else {
                         val capsuleShape = resolveSharedBottomBarCapsuleShape()
@@ -1217,7 +1221,8 @@ private fun LightweightHomeTopTabs(
                         indicatorLayerScaleProgress = topTabIndicatorLayerScaleProgress,
                         indicatorLayerScaleTransform = topTabIndicatorLayerScaleTransform,
                         bottomBarMotionSpec = topTabDragMotionSpec,
-                        isDarkTheme = isDarkTheme
+                        isDarkTheme = isDarkTheme,
+                        useRefractionLens = useTopTabIndicatorRefractionLens
                     )
                 }
                 if (shouldUseMd3LiquidCapsule) {
@@ -1251,7 +1256,8 @@ private fun LightweightHomeTopTabs(
                         indicatorLayerScaleProgress = topTabIndicatorLayerScaleProgress,
                         indicatorLayerScaleTransform = topTabIndicatorLayerScaleTransform,
                         bottomBarMotionSpec = topTabDragMotionSpec,
-                        isDarkTheme = isDarkTheme
+                        isDarkTheme = isDarkTheme,
+                        useRefractionLens = useTopTabIndicatorRefractionLens
                     )
                 }
                 LazyRow(
@@ -1374,6 +1380,7 @@ private fun LightweightHomeTopTabs(
                             indicatorLayerScaleTransform = topTabIndicatorLayerScaleTransform,
                             bottomBarMotionSpec = topTabDragMotionSpec,
                             isDarkTheme = isDarkTheme,
+                            useRefractionLens = useTopTabIndicatorRefractionLens,
                             indicatorAlignment = Alignment.BottomStart
                         )
                     } else if (!shouldUseMd3DockBackedCapsule) {

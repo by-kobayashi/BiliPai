@@ -20,14 +20,10 @@ internal fun resolveEffectiveHomeSettings(
         uiPreset = uiPreset,
         androidNativeLiquidGlassEnabled = homeSettings.androidNativeLiquidGlassEnabled
     )
-    return if (
-        !homeSettings.isTopBarLiquidGlassEnabled &&
-        effectiveBottomBarLiquidGlassEnabled == homeSettings.isBottomBarLiquidGlassEnabled
-    ) {
+    return if (effectiveBottomBarLiquidGlassEnabled == homeSettings.isBottomBarLiquidGlassEnabled) {
         homeSettings
     } else {
         homeSettings.copy(
-            isTopBarLiquidGlassEnabled = false,
             isBottomBarLiquidGlassEnabled = effectiveBottomBarLiquidGlassEnabled
         )
     }

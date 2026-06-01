@@ -273,8 +273,17 @@ fun AnimationSettingsContent(
                 Box(modifier = Modifier.entrance()) {
                     IOSGroup {
                         if (isLiquidGlassAvailable) {
-	                            IOSSwitchItem(
-	                                icon = rememberSettingsSemanticIcon(SettingsIconRole.BOTTOM_BAR_GLASS),
+                            IOSSwitchItem(
+                                icon = rememberSettingsSemanticIcon(SettingsIconRole.TOP_DOCK_GLASS),
+                                title = "顶部 Dock 液态玻璃",
+                                subtitle = "首页顶部 dock 栏的独立液态玻璃效果",
+                                checked = state.topBarLiquidGlassEnabled,
+                                onCheckedChange = { viewModel.toggleTopBarLiquidGlass(it) },
+                                iconTint = iOSBlue
+                            )
+                            IOSDivider()
+                            IOSSwitchItem(
+                                icon = rememberSettingsSemanticIcon(SettingsIconRole.BOTTOM_BAR_GLASS),
                                 title = "底栏液态玻璃",
                                 subtitle = "底部导航栏的液态玻璃折射效果",
                                 checked = bottomBarLiquidGlassEnabled,

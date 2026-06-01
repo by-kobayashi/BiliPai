@@ -128,7 +128,7 @@ class VisualEffectTogglePolicyTest {
     }
 
     @Test
-    fun `animation settings no longer exposes top bar liquid glass entry`() {
+    fun `animation settings exposes independent top dock liquid glass entry`() {
         val sourceFile = listOf(
             File("app/src/main/java/com/android/purebilibili/feature/settings/screen/AnimationSettingsScreen.kt"),
             File("src/main/java/com/android/purebilibili/feature/settings/screen/AnimationSettingsScreen.kt")
@@ -136,8 +136,8 @@ class VisualEffectTogglePolicyTest {
         requireNotNull(sourceFile)
         val source = sourceFile.readText()
 
-        assertFalse(source.contains("顶部栏液态玻璃"))
-        assertFalse(source.contains("toggleTopBarLiquidGlass"))
+        assertTrue(source.contains("顶部 Dock 液态玻璃"))
+        assertTrue(source.contains("toggleTopBarLiquidGlass"))
         assertTrue(source.contains("顶部栏磨砂"))
         assertTrue(source.contains("底栏液态玻璃"))
     }

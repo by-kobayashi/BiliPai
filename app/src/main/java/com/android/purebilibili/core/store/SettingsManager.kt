@@ -1032,7 +1032,7 @@ object SettingsManager {
             isHeaderBlurEnabled = headerBlurMode != HomeHeaderBlurMode.ALWAYS_OFF,
             headerBlurMode = headerBlurMode,
             isBottomBarBlurEnabled = preferences[KEY_BOTTOM_BAR_BLUR_ENABLED] ?: true,
-            isTopBarLiquidGlassEnabled = false,
+            isTopBarLiquidGlassEnabled = preferences[KEY_TOP_BAR_LIQUID_GLASS_ENABLED] ?: false,
             isBottomBarLiquidGlassEnabled = preferences[KEY_BOTTOM_BAR_LIQUID_GLASS_ENABLED] ?: legacyLiquidGlassEnabled,
             bottomBarLiquidGlassPreset = BottomBarLiquidGlassPreset.fromValue(
                 preferences[KEY_BOTTOM_BAR_LIQUID_GLASS_PRESET]
@@ -2346,7 +2346,9 @@ object SettingsManager {
     }
 
     fun getTopBarLiquidGlassEnabled(context: Context): Flow<Boolean> = context.settingsDataStore.data
-        .map { false }
+        .map { preferences ->
+            preferences[KEY_TOP_BAR_LIQUID_GLASS_ENABLED] ?: false
+        }
 
     suspend fun setTopBarLiquidGlassEnabled(context: Context, value: Boolean) {
         context.settingsDataStore.edit { preferences ->

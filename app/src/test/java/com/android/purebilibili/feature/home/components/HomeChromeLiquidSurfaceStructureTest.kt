@@ -159,6 +159,7 @@ class HomeChromeLiquidSurfaceStructureTest {
                 topBarSource.contains("rememberCombinedBackdrop(backdrop, topTabContentBackdrop)") &&
                 topBarSource.contains("layerBackdrop(topTabContentBackdrop)") &&
                 topBarSource.contains("contentBackdrop = topTabIndicatorContentBackdrop") &&
+                topBarSource.contains("useRefractionLens = useTopTabIndicatorRefractionLens") &&
                 topBarSource.contains("else if (!shouldUseMd3DockBackedCapsule)")
         )
         assertFalse(
@@ -202,5 +203,10 @@ class HomeChromeLiquidSurfaceStructureTest {
             "bottom bar should not keep the old BottomBarContent renderer",
             bottomBar.readText().contains("BottomBarContent(")
         )
+    }
+
+    @Test
+    fun `top tab indicator keeps bottom bar layer without refraction lens`() {
+        assertFalse(shouldUseTopTabIndicatorRefraction())
     }
 }

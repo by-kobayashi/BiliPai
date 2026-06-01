@@ -136,6 +136,14 @@ class SettingsSearchPolicyTest {
     }
 
     @Test
+    fun queryByTopDockLiquidGlass_focusesVisualEffects() {
+        val result = resolveSettingsSearchResults("顶部dock栏液态玻璃").firstOrNull()
+
+        assertEquals(SettingsSearchTarget.ANIMATION, result?.target)
+        assertEquals(SettingsSearchFocusIds.ANIMATION_VISUAL_EFFECTS, result?.focusId)
+    }
+
+    @Test
     fun queryByOldBackdropNativeName_returnsNoSettingsResult() {
         val legacyQuery = listOf("Back", "drop", " 原生").joinToString("")
         val results = resolveSettingsSearchResults(legacyQuery)

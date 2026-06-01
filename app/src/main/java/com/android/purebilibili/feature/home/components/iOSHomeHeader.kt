@@ -73,7 +73,6 @@ import com.android.purebilibili.core.store.HomeHeaderBlurMode
 import com.android.purebilibili.core.store.HomeSettings
 import com.android.purebilibili.core.store.HomeTopLayoutOrder
 import com.android.purebilibili.core.store.HomeTopRightAction
-import com.android.purebilibili.core.store.resolveEffectiveLiquidGlassEnabled
 import com.android.purebilibili.feature.home.resolveHomeTopCategories
 import com.android.purebilibili.feature.home.resolveHomeTopCollapsedHandleHeight
 import com.android.purebilibili.feature.home.resolveHomeTopTabPresentationHeight
@@ -184,11 +183,7 @@ internal fun resolveHomeTopLinkedBottomBarAppearance(
     return HomeTopLinkedBottomBarAppearance(
         isFloating = navigationAppearance.bottomBarFloating,
         blurEnabled = navigationAppearance.bottomBarBlurEnabled,
-        liquidGlassEnabled = resolveEffectiveLiquidGlassEnabled(
-            requestedEnabled = resolvedHomeSettings.isBottomBarLiquidGlassEnabled,
-            uiPreset = uiPreset,
-            androidNativeLiquidGlassEnabled = resolvedHomeSettings.androidNativeLiquidGlassEnabled
-        )
+        liquidGlassEnabled = resolvedHomeSettings.isTopBarLiquidGlassEnabled
     )
 }
 
@@ -241,11 +236,7 @@ internal fun resolveHomeTopChromeLiquidGlassEnabled(
     uiPreset: UiPreset
 ): Boolean {
     val resolvedHomeSettings = homeSettings ?: HomeSettings()
-    return resolveEffectiveLiquidGlassEnabled(
-        requestedEnabled = resolvedHomeSettings.isBottomBarLiquidGlassEnabled,
-        uiPreset = uiPreset,
-        androidNativeLiquidGlassEnabled = resolvedHomeSettings.androidNativeLiquidGlassEnabled
-    )
+    return resolvedHomeSettings.isTopBarLiquidGlassEnabled
 }
 
 internal fun resolveHomeTopChromeMaterialMode(

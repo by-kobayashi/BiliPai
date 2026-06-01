@@ -70,7 +70,7 @@ class HomeSettingsMappingPolicyTest {
             booleanPreferencesKey("header_collapse_enabled") to false,
             intPreferencesKey("home_header_collapse_mode") to HomeHeaderCollapseMode.TABS_ONLY.value,
             booleanPreferencesKey("bottom_bar_blur_enabled") to false,
-            booleanPreferencesKey("top_bar_liquid_glass_enabled") to false,
+            booleanPreferencesKey("top_bar_liquid_glass_enabled") to true,
             booleanPreferencesKey("bottom_bar_liquid_glass_enabled") to false,
             booleanPreferencesKey("bottom_bar_interactive_highlight_enabled") to false,
             booleanPreferencesKey("bottom_bar_search_enabled") to true,
@@ -107,7 +107,7 @@ class HomeSettingsMappingPolicyTest {
         assertEquals(HomeHeaderCollapseMode.TABS_ONLY, result.homeHeaderCollapseMode)
         assertTrue(result.isHeaderCollapseEnabled)
         assertFalse(result.isBottomBarBlurEnabled)
-        assertFalse(result.isTopBarLiquidGlassEnabled)
+        assertTrue(result.isTopBarLiquidGlassEnabled)
         assertFalse(result.isBottomBarLiquidGlassEnabled)
         assertFalse(result.bottomBarInteractiveHighlightEnabled)
         assertTrue(result.isBottomBarSearchEnabled)

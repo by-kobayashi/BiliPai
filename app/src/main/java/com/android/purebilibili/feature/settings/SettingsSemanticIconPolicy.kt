@@ -76,6 +76,7 @@ internal enum class SettingsIconRole {
     HOME_CARD_WIDTH,
     CARD_ENTRANCE_ANIMATION,
     CARD_TRANSITION_ANIMATION,
+    TOP_DOCK_GLASS,
     BOTTOM_BAR_GLASS,
     TOP_BAR_BLUR,
     BOTTOM_BAR_BLUR,
@@ -246,6 +247,7 @@ private fun resolveMd3SettingsSemanticIcon(role: SettingsIconRole): ImageVector 
     SettingsIconRole.HOME_CARD_WIDTH -> Icons.Outlined.WidthNormal
     SettingsIconRole.CARD_ENTRANCE_ANIMATION -> Icons.Outlined.AutoAwesomeMotion
     SettingsIconRole.CARD_TRANSITION_ANIMATION -> Icons.Outlined.SyncAlt
+    SettingsIconRole.TOP_DOCK_GLASS -> Icons.Outlined.Layers
     SettingsIconRole.BOTTOM_BAR_GLASS -> Icons.Outlined.BlurCircular
     SettingsIconRole.TOP_BAR_BLUR -> Icons.Outlined.Layers
     SettingsIconRole.BOTTOM_BAR_BLUR -> Icons.Outlined.BlurLinear
@@ -360,6 +362,7 @@ private fun resolveIosSettingsSemanticIcon(role: SettingsIconRole): ImageVector 
     SettingsIconRole.HOME_CARD_WIDTH -> CupertinoIcons.Outlined.Ruler
     SettingsIconRole.CARD_ENTRANCE_ANIMATION -> CupertinoIcons.Outlined.WandAndStarsInverse
     SettingsIconRole.CARD_TRANSITION_ANIMATION -> CupertinoIcons.Outlined.ArrowLeftAndRight
+    SettingsIconRole.TOP_DOCK_GLASS -> CupertinoIcons.Outlined.MenubarRectangle
     SettingsIconRole.BOTTOM_BAR_GLASS -> CupertinoIcons.Outlined.Square3Layers3dDownRight
     SettingsIconRole.TOP_BAR_BLUR -> CupertinoIcons.Outlined.MenubarRectangle
     SettingsIconRole.BOTTOM_BAR_BLUR -> CupertinoIcons.Outlined.SquareStack
