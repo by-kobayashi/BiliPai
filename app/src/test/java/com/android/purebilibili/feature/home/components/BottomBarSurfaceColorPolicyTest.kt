@@ -463,6 +463,25 @@ class BottomBarSurfaceColorPolicyTest {
     }
 
     @Test
+    fun `ios26 idle glass indicator keeps visible gray white capsule on dark content`() {
+        val tunedDark = resolveBottomBarIdleIndicatorSurfaceColor(
+            preset = BottomBarLiquidGlassPreset.BILIPAI_TUNED,
+            darkTheme = true
+        )
+        val ios26Dark = resolveBottomBarIdleIndicatorSurfaceColor(
+            preset = BottomBarLiquidGlassPreset.IOS26_REFINED,
+            darkTheme = true
+        )
+        val movingDark = resolveBottomBarMovingIndicatorSurfaceColor(isDarkTheme = true)
+
+        assertEquals(resolveAndroidNativeIdleIndicatorSurfaceColor(darkTheme = true), tunedDark)
+        assertEquals(movingDark.red, ios26Dark.red, 0.001f)
+        assertEquals(movingDark.green, ios26Dark.green, 0.001f)
+        assertEquals(movingDark.blue, ios26Dark.blue, 0.001f)
+        assertTrue(ios26Dark.alpha > tunedDark.alpha)
+    }
+
+    @Test
     fun `moving floating bottom bar staggers shell and indicator refraction offsets`() {
         val profile = resolveBottomBarRefractionMotionProfile(
             position = 1.35f,
