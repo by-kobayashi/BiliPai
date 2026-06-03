@@ -141,7 +141,7 @@ fun InboxScreen(
 
                             items(
                                 items = uiState.sessions,
-                                key = { "${it.talker_id}_${it.session_type}" }
+                                key = InboxSessionPaginationPolicy::resolveSessionKey
                             ) { session ->
                                 if (
                                     uiState.hasMore &&

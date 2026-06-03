@@ -87,14 +87,16 @@ class InboxViewModel : ViewModel() {
             
             sessionsResult.fold(
                 onSuccess = { data ->
-                    val sessions = data.session_list ?: emptyList()
+                    val sessions = InboxSessionPaginationPolicy.normalizeSessions(
+                        data.session_list ?: emptyList()
+                    )
                     
                     //  计算下一次加载的游标
                     val nextEndTs = InboxSessionPaginationPolicy.resolveNextEndTs(sessions)
                     
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        sessions = InboxSessionPaginationPolicy.sortSessions(sessions),
+                        sessions = sessions,
                         hasMore = data.has_more == 1 && nextEndTs > 0L,
                         userInfoMap = primeSessionUserCache(sessions).toMap(),
                         endTs = nextEndTs,
@@ -316,7 +318,9 @@ class InboxViewModel : ViewModel() {
             
             sessionsResult.fold(
                 onSuccess = { data ->
-                    val sessions = data.session_list ?: emptyList()
+                    val sessions = InboxSessionPaginationPolicy.normalizeSessions(
+                        data.session_list ?: emptyList()
+                    )
                     
                     // 计算 cursor
                     val nextEndTs = InboxSessionPaginationPolicy.resolveNextEndTs(sessions)
@@ -324,7 +328,7 @@ class InboxViewModel : ViewModel() {
                     _uiState.value = _uiState.value.copy(
                         isRefreshing = false,
                         isBatchOperating = false,
-                        sessions = InboxSessionPaginationPolicy.sortSessions(sessions),
+                        sessions = sessions,
                         hasMore = data.has_more == 1 && nextEndTs > 0L,
                         userInfoMap = primeSessionUserCache(sessions).toMap(),
                         endTs = nextEndTs
@@ -378,7 +382,7 @@ class InboxViewModel : ViewModel() {
                 if (it.talker_id == session.talker_id && it.session_type == session.session_type) {
                     it.copy(top_ts = if (isCurrentlyTop) 0 else now)
                 } else it
-            }.let(InboxSessionPaginationPolicy::sortSessions)
+            }.let(InboxSessionPaginationPolicy::normalizeSessions)
             _uiState.value = _uiState.value.copy(sessions = updatedSessions)
             
             MessageRepository.setSessionTop(session.talker_id, session.session_type, !isCurrentlyTop)
