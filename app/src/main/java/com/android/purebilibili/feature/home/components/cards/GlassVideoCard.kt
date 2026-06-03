@@ -19,9 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -366,37 +364,32 @@ fun GlassVideoCard(
                                     maxLines = 1,
                                     softWrap = false,
                                     textAlign = TextAlign.Center,
-                                    style = androidx.compose.ui.text.TextStyle(
-                                        shadow = Shadow(
-                                            color = Color.Black.copy(alpha = durationBadgeStyle.textShadowAlpha),
-                                            offset = Offset(0f, 1f),
-                                            blurRadius = durationBadgeStyle.textShadowBlurRadiusPx
-                                        )
-                                    ),
                                     modifier = Modifier
                                         .widthIn(min = durationBadgeMinWidth)
                                         .padding(horizontal = 10.dp, vertical = 5.dp)
                                 )
                             }
                         } else {
-                            Text(
-                                text = durationText,
-                                color = Color.White,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                softWrap = false,
-                                style = androidx.compose.ui.text.TextStyle(
-                                    shadow = Shadow(
-                                        color = Color.Black.copy(alpha = durationBadgeStyle.textShadowAlpha),
-                                        offset = Offset(0f, 1f),
-                                        blurRadius = durationBadgeStyle.textShadowBlurRadiusPx
-                                    )
-                                ),
+                            Surface(
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
-                                    .padding(20.dp, 0.dp, 20.dp, 16.dp)
-                            )
+                                    .padding(20.dp, 0.dp, 20.dp, 16.dp),
+                                color = Color.Black.copy(alpha = durationBadgeStyle.backgroundAlpha),
+                                shape = RoundedCornerShape(tagCornerRadius)
+                            ) {
+                                Text(
+                                    text = durationText,
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .widthIn(min = durationBadgeMinWidth)
+                                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                                )
+                            }
                         }
                         
                         //  [新增] 竖屏标签 - 左上角显示
@@ -418,22 +411,21 @@ fun GlassVideoCard(
                                 )
                             }
                         } else if (video.isVertical) {
-                            Text(
-                                text = "竖屏",
-                                color = Color.White,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                style = androidx.compose.ui.text.TextStyle(
-                                    shadow = Shadow(
-                                        color = Color.Black.copy(alpha = 0.45f),
-                                        offset = Offset(0f, 1f),
-                                        blurRadius = 3f
-                                    )
-                                ),
+                            Surface(
                                 modifier = Modifier
                                     .align(Alignment.TopStart)
-                                    .padding(10.dp)
-                            )
+                                    .padding(10.dp),
+                                color = Color(0xFF00D1B2).copy(alpha = 0.82f),
+                                shape = RoundedCornerShape(smallTagRadius)
+                            ) {
+                                Text(
+                                    text = "竖屏",
+                                    color = Color.White,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                )
+                            }
                         }
                     }
                 }

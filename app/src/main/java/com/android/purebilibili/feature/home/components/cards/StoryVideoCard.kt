@@ -356,37 +356,32 @@ fun StoryVideoCard(
                         maxLines = 1,
                         softWrap = false,
                         textAlign = TextAlign.Center,
-                        style = androidx.compose.ui.text.TextStyle(
-                            shadow = androidx.compose.ui.graphics.Shadow(
-                                color = Color.Black.copy(alpha = durationBadgeStyle.textShadowAlpha),
-                                offset = androidx.compose.ui.geometry.Offset(0f, 1f),
-                                blurRadius = durationBadgeStyle.textShadowBlurRadiusPx
-                            )
-                        ),
                         modifier = Modifier
                             .widthIn(min = durationBadgeMinWidth)
                             .padding(horizontal = 6.dp, vertical = 3.dp)
                     )
                 }
             } else if (showDurationBadge) {
-                Text(
-                    text = durationText,
-                    color = Color.White,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    softWrap = false,
-                    style = androidx.compose.ui.text.TextStyle(
-                        shadow = androidx.compose.ui.graphics.Shadow(
-                            color = Color.Black.copy(alpha = durationBadgeStyle.textShadowAlpha),
-                            offset = androidx.compose.ui.geometry.Offset(0f, 1f),
-                            blurRadius = durationBadgeStyle.textShadowBlurRadiusPx
-                        )
-                    ),
+                Surface(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(14.dp)
-                )
+                        .padding(14.dp),
+                    color = Color.Black.copy(alpha = durationBadgeStyle.backgroundAlpha),
+                    shape = AppShapes.container(ContainerLevel.Chip)
+                ) {
+                    Text(
+                        text = durationText,
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        softWrap = false,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .widthIn(min = durationBadgeMinWidth)
+                            .padding(horizontal = 6.dp, vertical = 3.dp)
+                    )
+                }
             }
         }
         

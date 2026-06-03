@@ -16,7 +16,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.luminance
 import com.android.purebilibili.core.store.HomeWallpaperEffectMode
@@ -873,35 +872,30 @@ fun ElegantVideoCard(
                                 maxLines = 1,
                                 softWrap = false,
                                 textAlign = TextAlign.Center,
-                                style = androidx.compose.ui.text.TextStyle(
-                                    shadow = Shadow(
-                                        color = Color.Black.copy(alpha = durationBadgeStyle.textShadowAlpha),
-                                        offset = Offset(0f, 1f),
-                                        blurRadius = durationBadgeStyle.textShadowBlurRadiusPx
-                                    )
-                                ),
                                 modifier = Modifier
                                     .widthIn(min = durationBadgeMinWidth)
                                     .padding(horizontal = 4.dp, vertical = 2.dp)
                             )
                         }
                     } else if (showDurationBadge) {
-                        Text(
-                            text = durationText,
-                            color = Color.White,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1,
-                            softWrap = false,
-                            style = androidx.compose.ui.text.TextStyle(
-                                shadow = Shadow(
-                                    color = Color.Black.copy(alpha = durationBadgeStyle.textShadowAlpha),
-                                    offset = Offset(0f, 1f),
-                                    blurRadius = durationBadgeStyle.textShadowBlurRadiusPx
-                                )
-                            ),
-                            modifier = Modifier.align(Alignment.BottomEnd)
-                        )
+                        Surface(
+                            modifier = Modifier.align(Alignment.BottomEnd),
+                            shape = RoundedCornerShape(smallCornerRadius),
+                            color = Color.Black.copy(alpha = durationBadgeStyle.backgroundAlpha)
+                        ) {
+                            Text(
+                                text = durationText,
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                softWrap = false,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .widthIn(min = durationBadgeMinWidth)
+                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                            )
+                        }
                     }
                 }
             } else {
@@ -928,33 +922,13 @@ fun ElegantVideoCard(
                             maxLines = 1,
                             softWrap = false,
                             textAlign = TextAlign.Center,
-                            style = androidx.compose.ui.text.TextStyle(
-                                shadow = Shadow(
-                                    color = Color.Black.copy(alpha = durationBadgeStyle.textShadowAlpha),
-                                    offset = Offset(0f, 1f),
-                                    blurRadius = durationBadgeStyle.textShadowBlurRadiusPx
-                                )
-                            ),
                             modifier = Modifier
                                 .widthIn(min = durationBadgeMinWidth)
                                 .padding(horizontal = 4.dp, vertical = 2.dp)
                         )
                     }
                 } else if (showDurationBadge) {
-                    Text(
-                        text = durationText,
-                        color = Color.White,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        softWrap = false,
-                        style = androidx.compose.ui.text.TextStyle(
-                            shadow = Shadow(
-                                color = Color.Black.copy(alpha = durationBadgeStyle.textShadowAlpha),
-                                offset = Offset(0f, 1f),
-                                blurRadius = durationBadgeStyle.textShadowBlurRadiusPx
-                            )
-                        ),
+                    Surface(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(
@@ -962,8 +936,23 @@ fun ElegantVideoCard(
                                 top = 10.dp,
                                 end = 10.dp,
                                 bottom = coverOverlayBottomLayout.floatingDurationBottomPaddingDp.dp
-                            )
-                    )
+                            ),
+                        shape = RoundedCornerShape(smallCornerRadius),
+                        color = Color.Black.copy(alpha = durationBadgeStyle.backgroundAlpha)
+                    ) {
+                        Text(
+                            text = durationText,
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            softWrap = false,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .widthIn(min = durationBadgeMinWidth)
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        )
+                    }
                 }
             }
             

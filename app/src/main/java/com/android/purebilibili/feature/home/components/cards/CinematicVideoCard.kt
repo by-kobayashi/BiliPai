@@ -311,11 +311,7 @@ fun CinematicVideoCard(
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
-                        fontSize = 18.sp,
-                        shadow = androidx.compose.ui.graphics.Shadow(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            blurRadius = 8f
-                        )
+                        fontSize = 18.sp
                     ),
                     modifier = titleModifier
                 )
@@ -370,11 +366,7 @@ fun CinematicVideoCard(
                              }
                          } else null,
                          nameStyle = MaterialTheme.typography.bodySmall.copy(
-                             fontWeight = FontWeight.Medium,
-                             shadow = androidx.compose.ui.graphics.Shadow(
-                                 color = Color.Black.copy(alpha = 0.5f),
-                                 blurRadius = 4f
-                             )
+                             fontWeight = FontWeight.Medium
                          ),
                          nameColor = Color.White.copy(alpha = 0.9f),
                          badgeTextColor = Color.White.copy(alpha = 0.92f),
