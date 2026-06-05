@@ -585,6 +585,7 @@ fun ElegantVideoCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(VIDEO_SHARED_COVER_ASPECT_RATIO)
+                .clip(coverShape)
                 .onGloballyPositioned { coordinates ->
                     coverCoordsRef.value = coordinates
                 }

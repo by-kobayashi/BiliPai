@@ -99,6 +99,20 @@ class VideoCardScrollLiteVisualPolicyTest {
     }
 
     @Test
+    fun `elegant video card clips static cover container to cover shape`() {
+        val source = File("src/main/java/com/android/purebilibili/feature/home/components/cards/VideoCard.kt")
+            .readText()
+
+        assertTrue(
+            "首页视频封面本体必须裁剪 coverShape，不能只依赖 sharedBounds 的 overlay 裁剪。",
+            source.contains(
+                ".aspectRatio(VIDEO_SHARED_COVER_ASPECT_RATIO)\n" +
+                    "                .clip(coverShape)"
+            )
+        )
+    }
+
+    @Test
     fun `return target cover disables crossfade during shared transition`() {
         assertFalse(
             shouldEnableVideoCardCoverCrossfade(
