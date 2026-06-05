@@ -451,10 +451,10 @@ class BottomBarSurfaceColorPolicyTest {
             darkTheme = false
         )
 
-        assertTrue(idleIndicator.red > 0.9f)
-        assertTrue(idleIndicator.green > 0.9f)
-        assertTrue(idleIndicator.blue > 0.9f)
-        assertTrue(idleIndicator.alpha > 0.3f)
+        assertTrue(idleIndicator.red in 0.80f..0.90f)
+        assertTrue(idleIndicator.green in 0.80f..0.90f)
+        assertTrue(idleIndicator.blue in 0.82f..0.92f)
+        assertTrue(idleIndicator.alpha > 0.65f)
         assertFalse(
             idleIndicator.red == themeIndicator.red &&
                 idleIndicator.green == themeIndicator.green &&
@@ -492,8 +492,8 @@ class BottomBarSurfaceColorPolicyTest {
             darkTheme = false
         )
 
-        assertTrue(tunedLight.red > 0.9f)
-        assertTrue(ios26Light.red > 0.9f)
+        assertTrue(tunedLight.red in 0.80f..0.90f)
+        assertTrue(ios26Light.red in 0.80f..0.90f)
         assertTrue(ios26Light.alpha > tunedLight.alpha)
     }
 
