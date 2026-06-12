@@ -33,6 +33,7 @@ import com.android.purebilibili.core.ui.rememberAppBookmarkIcon
 import com.android.purebilibili.core.ui.rememberAppChevronForwardIcon
 import com.android.purebilibili.core.ui.rememberAppDownloadIcon
 import com.android.purebilibili.core.ui.rememberAppHistoryIcon
+import com.android.purebilibili.core.ui.rememberAppLikeIcon
 import com.android.purebilibili.core.ui.rememberAppInboxIcon
 import com.android.purebilibili.core.ui.rememberAppLogoutIcon
 import com.android.purebilibili.core.ui.rememberAppTvIcon
@@ -83,6 +84,7 @@ fun MineSideDrawer(
     onLogout: () -> Unit,
     onHistoryClick: () -> Unit,
     onFavoriteClick: () -> Unit,
+    onLikedVideosClick: () -> Unit,
     onBangumiClick: () -> Unit,
     onDownloadClick: () -> Unit,
     onWatchLaterClick: () -> Unit,
@@ -142,6 +144,7 @@ fun MineSideDrawer(
     val colorScheme = MaterialTheme.colorScheme
     val downloadIcon = rememberAppDownloadIcon()
     val historyIcon = rememberAppHistoryIcon()
+    val likeIcon = rememberAppLikeIcon()
     val tvIcon = rememberAppTvIcon()
     val bookmarkIcon = rememberAppBookmarkIcon()
     val watchLaterIcon = rememberAppWatchLaterIcon()
@@ -369,6 +372,16 @@ fun MineSideDrawer(
                         title = "我的收藏",
                         onClick = { closeAndRun(onFavoriteClick) },
                         iconTint = iOSYellow,
+                        textColor = activeContentColor,
+                        valueColor = secondaryContentColor,
+                        chevronTint = chevronColor
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(start = 48.dp), thickness = dividerThickness, color = dividerColor)
+                    IOSClickableItem(
+                        icon = likeIcon,
+                        title = "我的点赞",
+                        onClick = { closeAndRun(onLikedVideosClick) },
+                        iconTint = iOSPink,
                         textColor = activeContentColor,
                         valueColor = secondaryContentColor,
                         chevronTint = chevronColor

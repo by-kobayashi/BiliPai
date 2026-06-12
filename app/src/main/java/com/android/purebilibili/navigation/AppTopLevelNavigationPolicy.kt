@@ -207,6 +207,7 @@ internal fun shouldPreserveProfileStackForShortcut(targetRoute: String): Boolean
     return targetRoute == ScreenRoutes.Settings.route ||
         targetRoute == ScreenRoutes.History.route ||
         targetRoute == ScreenRoutes.Favorite.route ||
+        targetRoute == ScreenRoutes.LikedVideos.route ||
         targetRoute == ScreenRoutes.WatchLater.route ||
         targetRoute == ScreenRoutes.DownloadList.route ||
         targetRoute == ScreenRoutes.Inbox.route ||

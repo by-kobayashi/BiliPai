@@ -50,6 +50,20 @@ abstract class BaseListViewModel(application: Application, private val pageTitle
     abstract suspend fun fetchItems(): List<VideoItem>
 }
 
+class LikedVideosViewModel(application: Application) : BaseListViewModel(application, "我的点赞") {
+    override suspend fun fetchItems(): List<VideoItem> {
+        val mid = NetworkModule.api.getNavInfo().data?.mid ?: 0L
+        check(mid > 0L) { "请先登录" }
+        return com.android.purebilibili.data.repository.LikedVideosRepository
+            .getLikedVideos(mid)
+            .getOrThrow()
+    }
+
+    init {
+        loadData()
+    }
+}
+
 // --- 历史记录 ViewModel (支持游标分页加载) ---
 class HistoryViewModel(application: Application) : BaseListViewModel(application, "历史记录") {
     

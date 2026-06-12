@@ -285,6 +285,11 @@ interface BilibiliApi {
         @Query("platform") platform: String = "web"
     ): FavoriteResourceResponse
 
+    @GET("x/space/like/video")
+    suspend fun getLikedVideos(
+        @Query("vmid") mid: Long
+    ): LikedVideosResponse
+
     @GET("x/space/fav/season/list")
     suspend fun getFavoriteSeasonList(
         @Query("season_id") seasonId: Long,

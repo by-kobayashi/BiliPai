@@ -61,6 +61,7 @@ import com.android.purebilibili.feature.settings.RELEASE_DISCLAIMER_ACK_KEY
 import com.android.purebilibili.feature.settings.ReleaseChannelDisclaimerDialog
 import com.android.purebilibili.feature.list.CommonListScreen
 import com.android.purebilibili.feature.list.HistoryViewModel
+import com.android.purebilibili.feature.list.LikedVideosViewModel
 import com.android.purebilibili.feature.list.FavoriteViewModel
 import com.android.purebilibili.feature.list.HistoryNavigationKind
 import com.android.purebilibili.feature.list.resolveHistoryNavigationKind
@@ -1204,6 +1205,7 @@ fun AppNavigation(
                                     pushNavigation3Route(ScreenRoutes.Category.createRoute(tid, name))
                                 },
                                 onFavoriteClick = { pushNavigation3Route(ScreenRoutes.Favorite.route) },
+                                onLikedVideosClick = { pushNavigation3Route(ScreenRoutes.LikedVideos.route) },
                                 onLiveListClick = { pushNavigation3Route(ScreenRoutes.LiveList.route) },
                                 onWatchLaterClick = { pushNavigation3Route(ScreenRoutes.WatchLater.route) },
                                 onDownloadClick = { pushNavigation3Route(ScreenRoutes.DownloadList.route) },
@@ -1890,6 +1892,17 @@ fun AppNavigation(
                                     },
                                     onPlayAllAudioClick = { bvid, cid ->
                                         navigateToVideoInNavigation3(bvid, cid, "", startAudio = true)
+                                    }
+                                )
+                            }
+                        BiliPaiNavEntryContentRole.LIKED_VIDEOS -> {
+                                val likedVideosViewModel: LikedVideosViewModel = viewModel()
+                                CommonListScreen(
+                                    viewModel = likedVideosViewModel,
+                                    onBack = { performSystemBackAction() },
+                                    globalHazeState = mainHazeState,
+                                    onVideoClick = { bvid, cid, cover ->
+                                        navigateToVideoInNavigation3(bvid, cid, cover)
                                     }
                                 )
                             }

@@ -122,6 +122,11 @@ internal sealed interface BiliPaiNavKey : NavKey {
     }
 
     @Serializable
+    data object LikedVideos : BiliPaiNavKey {
+        override val routeBase: String = "liked_videos"
+    }
+
+    @Serializable
     data object WatchLater : BiliPaiNavKey {
         override val routeBase: String = "watch_later"
     }

@@ -60,6 +60,7 @@ internal fun isVideoCardReturnTargetRoute(route: String?): Boolean {
         routeBase == ScreenRoutes.Home.route ||
         routeBase == ScreenRoutes.History.route ||
         routeBase == ScreenRoutes.Favorite.route ||
+        routeBase == ScreenRoutes.LikedVideos.route ||
         routeBase == ScreenRoutes.WatchLater.route ||
         routeBase == ScreenRoutes.Search.route ||
         routeBase == ScreenRoutes.Dynamic.route ||

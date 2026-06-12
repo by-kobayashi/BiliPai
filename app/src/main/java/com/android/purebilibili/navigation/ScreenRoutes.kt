@@ -19,6 +19,7 @@ sealed class ScreenRoutes(val route: String) {
     //  新增路由：历史记录和收藏
     object History : ScreenRoutes("history")
     object Favorite : ScreenRoutes("favorite")
+    object LikedVideos : ScreenRoutes("liked_videos")
     object WatchLater : ScreenRoutes("watch_later")  //  [新增] 稍后再看
     object LiveList : ScreenRoutes("live_list")  //  [新增] 直播列表
     object LiveSearch : ScreenRoutes("live_search")

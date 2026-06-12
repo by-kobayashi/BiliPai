@@ -29,6 +29,7 @@ internal fun BiliPaiNavKey.toLegacyRoute(): String {
         BiliPaiNavKey.Profile -> ScreenRoutes.Profile.route
         BiliPaiNavKey.History -> ScreenRoutes.History.route
         BiliPaiNavKey.Favorite -> ScreenRoutes.Favorite.route
+        BiliPaiNavKey.LikedVideos -> ScreenRoutes.LikedVideos.route
         BiliPaiNavKey.WatchLater -> ScreenRoutes.WatchLater.route
         BiliPaiNavKey.Onboarding -> ScreenRoutes.Onboarding.route
         is BiliPaiNavKey.Following -> ScreenRoutes.Following.createRoute(mid)
@@ -117,6 +118,7 @@ internal fun legacyRouteToBiliPaiNavKey(route: String?): BiliPaiNavKey {
         normalized == ScreenRoutes.Profile.route -> BiliPaiNavKey.Profile
         normalized == ScreenRoutes.History.route -> BiliPaiNavKey.History
         normalized == ScreenRoutes.Favorite.route -> BiliPaiNavKey.Favorite
+        normalized == ScreenRoutes.LikedVideos.route -> BiliPaiNavKey.LikedVideos
         normalized == ScreenRoutes.WatchLater.route -> BiliPaiNavKey.WatchLater
         normalized == ScreenRoutes.Onboarding.route -> BiliPaiNavKey.Onboarding
         segments.firstOrNull() == "following" && segments.size >= 2 -> {
