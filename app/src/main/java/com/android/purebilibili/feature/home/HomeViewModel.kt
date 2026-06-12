@@ -22,7 +22,10 @@ import com.android.purebilibili.core.util.appendDistinctByKey
 import com.android.purebilibili.core.util.Logger
 import com.android.purebilibili.core.util.prependDistinctByKey
 import com.android.purebilibili.data.model.response.LiveRoom
+import com.android.purebilibili.data.model.response.RecommendationFeedbackLocalAction
+import com.android.purebilibili.data.model.response.RecommendationFeedbackReason
 import com.android.purebilibili.data.model.response.VideoItem
+import com.android.purebilibili.data.repository.ActionRepository
 import com.android.purebilibili.data.repository.HistoryRepository
 import com.android.purebilibili.data.repository.MessageRepository
 import com.android.purebilibili.data.repository.VideoRepository
@@ -40,8 +43,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.Channel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.collections.immutable.toImmutableSet
@@ -296,6 +301,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val todayDislikedCreatorMids = mutableSetOf<Long>()
     private val todayDislikedKeywords = linkedSetOf<String>()
     private val pendingNotInterestedRefilterBvids = mutableSetOf<String>()
+    private val _feedbackEvents = Channel<String>(capacity = Channel.BUFFERED)
+    val feedbackEvents = _feedbackEvents.receiveAsFlow()
     private var todayWatchPluginObserverJob: Job? = null
     private var observedTodayWatchPlugin: TodayWatchPlugin? = null
 
@@ -803,51 +810,76 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // [New] Mark as Not Interested (Dislike)
-    fun markNotInterested(bvid: String, cardAnimationEnabled: Boolean = true) {
+    fun markNotInterested(
+        video: VideoItem,
+        reason: RecommendationFeedbackReason,
+        cardAnimationEnabled: Boolean = true
+    ) {
         viewModelScope.launch {
-            val currentCategory = _uiState.value.currentCategory
-            val categoryVideos = _uiState.value.categoryStates[currentCategory]?.videos.orEmpty()
-            categoryVideos.firstOrNull { it.bvid == bvid }?.let { video ->
-                recordTodayWatchNegativeFeedback(video)
-                val action = resolveHomeNotInterestedAction(video)
-                if (action.shouldBlockCreator) {
-                    val writeResult = if (action.shouldSyncCreatorToBilibiliBlockedList) {
-                        blockedUpRepository.blockUpWithBilibiliSync(
-                            mid = action.creatorMid,
-                            name = action.creatorName,
-                            face = action.creatorFace
-                        )
-                    } else {
-                        blockedUpRepository.blockUp(
-                            mid = action.creatorMid,
-                            name = action.creatorName,
-                            face = action.creatorFace
-                        )
-                        null
-                    }
-                    writeResult?.message?.let { message ->
-                        com.android.purebilibili.core.util.Logger.d("HomeVM", message)
-                    }
-                    blockedMids = blockedMids + action.creatorMid
-                    pendingNotInterestedRefilterBvids += bvid
-                }
+            val action = resolveHomeNotInterestedAction(video, reason)
+            recordTodayWatchNegativeFeedback(video, action)
+            if (action.shouldBlockCreator) {
+                blockedUpRepository.blockUp(
+                    mid = action.creatorMid,
+                    name = action.creatorName,
+                    face = action.creatorFace
+                )
+                blockedMids = blockedMids + action.creatorMid
             }
+            if (action.shouldBlockCreator || action.keywords.isNotEmpty()) {
+                pendingNotInterestedRefilterBvids += video.bvid
+            }
+
             val transition = resolveHomeDismissVisualTransition(
                 isFeedbackRecorded = true,
                 cardAnimationEnabled = cardAnimationEnabled
             )
             if (transition.shouldStartDissolve) {
-                startVideoDissolve(bvid)
+                startVideoDissolve(video.bvid)
             } else if (transition.shouldRemoveImmediately) {
-                completeVideoDissolve(bvid)
+                completeVideoDissolve(video.bvid)
             }
-            com.android.purebilibili.core.util.Logger.d("HomeVM", "Marked as not interested: $bvid")
+
+            if (action.shouldSyncCreatorToBilibiliBlockedList) {
+                viewModelScope.launch {
+                    val writeResult = blockedUpRepository.blockUpWithBilibiliSync(
+                        mid = action.creatorMid,
+                        name = action.creatorName,
+                        face = action.creatorFace
+                    )
+                    Logger.d("HomeVM", writeResult.message)
+                }
+            }
+
+            val metadata = video.recommendationFeedback
+            val supportsServerSync = metadata?.supportsServerSync == true && reason.id != null
+            if (supportsServerSync) {
+                viewModelScope.launch {
+                    ActionRepository.submitRecommendationFeedback(metadata, reason)
+                        .onSuccess {
+                            _feedbackEvents.send(
+                                reason.toast.ifBlank { "已减少相关内容推荐" }
+                            )
+                        }
+                        .onFailure {
+                            _feedbackEvents.send("已在本地生效，服务器同步失败")
+                        }
+                }
+            } else {
+                _feedbackEvents.send(reason.toast.ifBlank { "已减少相关内容推荐" })
+            }
+            Logger.d("HomeVM", "已记录不感兴趣: ${video.bvid}, reason=${reason.name}")
         }
     }
 
     fun blockCreator(video: VideoItem) {
-        val action = resolveHomeNotInterestedAction(video)
+        val action = resolveHomeNotInterestedAction(
+            video = video,
+            reason = RecommendationFeedbackReason(
+                name = "屏蔽 UP 主",
+                localAction = RecommendationFeedbackLocalAction.CREATOR
+            )
+        )
         if (!action.shouldBlockCreator) {
             android.widget.Toast.makeText(getApplication(), "无法获取 UP 主信息", android.widget.Toast.LENGTH_SHORT).show()
             return
@@ -864,8 +896,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun recordTodayWatchNegativeFeedback(video: VideoItem) {
-        val keywords = extractFeedbackKeywords(video.title)
+    private fun recordTodayWatchNegativeFeedback(
+        video: VideoItem,
+        action: HomeNotInterestedAction
+    ) {
         val snapshot = TodayWatchFeedbackStore.getSnapshot(getApplication()).withDislikedVideoFeedback(
             video = TodayWatchDislikedVideoSnapshot(
                 bvid = video.bvid,
@@ -874,7 +908,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 creatorMid = video.owner.mid,
                 dislikedAtMillis = System.currentTimeMillis()
             ),
-            keywords = keywords
+            keywords = action.keywords,
+            includeCreatorSignal = action.shouldBlockCreator
         )
         todayDislikedBvids.clear()
         todayDislikedBvids.addAll(snapshot.dislikedBvids)
@@ -883,27 +918,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         todayDislikedKeywords.clear()
         todayDislikedKeywords.addAll(snapshot.dislikedKeywords)
         TodayWatchFeedbackStore.saveSnapshot(getApplication(), snapshot)
-    }
-
-    private fun extractFeedbackKeywords(title: String): Set<String> {
-        if (title.isBlank()) return emptySet()
-        val normalized = title.lowercase()
-        val stopWords = setOf("视频", "合集", "最新", "一个", "我们", "你们", "今天", "真的", "这个")
-
-        val zhTokens = Regex("[\\u4e00-\\u9fa5]{2,6}")
-            .findAll(normalized)
-            .map { it.value }
-            .filter { it !in stopWords }
-            .take(6)
-            .toList()
-
-        val enTokens = Regex("[a-z0-9]{3,}")
-            .findAll(normalized)
-            .map { it.value }
-            .take(4)
-            .toList()
-
-        return (zhTokens + enTokens).toSet()
     }
 
     private fun syncTodayWatchFeedbackFromStore() {

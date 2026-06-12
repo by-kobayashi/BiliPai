@@ -202,8 +202,40 @@ data class VideoItem(
     val collectionMid: Long = 0,
     val collectionMediaCount: Int = 0,
     val collectionSubtitle: String = "",
-    val rights: VideoRights? = null
+    val rights: VideoRights? = null,
+    val recommendationFeedback: RecommendationFeedbackMetadata? = null
 )
+
+@Serializable
+data class RecommendationFeedbackMetadata(
+    val goto: String = "",
+    val param: String = "",
+    val reasons: List<RecommendationFeedbackReason> = emptyList(),
+    val supportsServerSync: Boolean = false
+)
+
+@Serializable
+data class RecommendationFeedbackReason(
+    val id: Long? = null,
+    val name: String = "",
+    val toast: String = "",
+    val type: RecommendationFeedbackType = RecommendationFeedbackType.DISLIKE,
+    val localAction: RecommendationFeedbackLocalAction = RecommendationFeedbackLocalAction.VIDEO_ONLY
+)
+
+@Serializable
+enum class RecommendationFeedbackType {
+    DISLIKE,
+    FEEDBACK
+}
+
+@Serializable
+enum class RecommendationFeedbackLocalAction {
+    VIDEO_ONLY,
+    CREATOR,
+    CATEGORY,
+    SIMILAR_CONTENT
+}
 
 @Serializable
 data class VideoRights(
@@ -584,6 +616,7 @@ data class MobileFeedItem(
     val duration: Long = 0,
     val args: MobileFeedArgs? = null,
     @SerialName("player_args") val playerArgs: MobileFeedPlayerArgs? = null,
+    @SerialName("three_point_v2") val threePointV2: List<MobileFeedThreePoint> = emptyList(),
     @SerialName("cover_left_text_1") val coverLeftText1: String = "",  // 播放量
     @SerialName("cover_left_text_2") val coverLeftText2: String = ""   // 弹幕数
 ) {
@@ -618,7 +651,35 @@ data class MobileFeedItem(
                 view = parseStatText(coverLeftText1),
                 danmaku = parseStatText(coverLeftText2)
             ),
-            duration = duration.toInt()
+            tid = args?.tid?.takeIf { it > 0 } ?: args?.rid ?: 0,
+            tname = args?.let { it.tname.ifBlank { it.rname } }.orEmpty(),
+            duration = duration.toInt(),
+            recommendationFeedback = RecommendationFeedbackMetadata(
+                goto = goto,
+                param = param,
+                reasons = threePointV2.flatMap { group ->
+                    val type = when (group.type) {
+                        "feedback" -> RecommendationFeedbackType.FEEDBACK
+                        "dislike" -> RecommendationFeedbackType.DISLIKE
+                        else -> null
+                    } ?: return@flatMap emptyList()
+                    group.reasons.mapNotNull { reason ->
+                        reason.name.takeIf { it.isNotBlank() }?.let {
+                            RecommendationFeedbackReason(
+                                id = reason.id,
+                                name = it,
+                                toast = reason.toast,
+                                type = type,
+                                localAction = resolveRecommendationFeedbackLocalAction(
+                                    type = type,
+                                    reasonId = reason.id
+                                )
+                            )
+                        }
+                    }
+                },
+                supportsServerSync = goto.isNotBlank() && param.isNotBlank()
+            )
         )
     }
     
@@ -639,8 +700,41 @@ data class MobileFeedArgs(
     @SerialName("up_id") val upId: Long = 0,
     @SerialName("up_name") val upName: String = "",
     @SerialName("up_face") val upFace: String = "",
-    val aid: Long = 0
+    val aid: Long = 0,
+    val rid: Int = 0,
+    val rname: String = "",
+    val tid: Int = 0,
+    val tname: String = ""
 )
+
+@Serializable
+data class MobileFeedThreePoint(
+    val title: String = "",
+    val type: String = "",
+    val reasons: List<MobileFeedFeedbackReason> = emptyList()
+)
+
+@Serializable
+data class MobileFeedFeedbackReason(
+    val id: Long = 0,
+    val name: String = "",
+    val toast: String = ""
+)
+
+private fun resolveRecommendationFeedbackLocalAction(
+    type: RecommendationFeedbackType,
+    reasonId: Long
+): RecommendationFeedbackLocalAction {
+    if (type == RecommendationFeedbackType.FEEDBACK) {
+        return RecommendationFeedbackLocalAction.VIDEO_ONLY
+    }
+    return when (reasonId) {
+        4L -> RecommendationFeedbackLocalAction.CREATOR
+        2L, 3L -> RecommendationFeedbackLocalAction.CATEGORY
+        12L -> RecommendationFeedbackLocalAction.SIMILAR_CONTENT
+        else -> RecommendationFeedbackLocalAction.VIDEO_ONLY
+    }
+}
 
 @Serializable
 data class MobileFeedPlayerArgs(

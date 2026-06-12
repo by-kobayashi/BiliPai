@@ -1,6 +1,8 @@
 package com.android.purebilibili.feature.home
 
 import com.android.purebilibili.data.model.response.Owner
+import com.android.purebilibili.data.model.response.RecommendationFeedbackLocalAction
+import com.android.purebilibili.data.model.response.RecommendationFeedbackReason
 import com.android.purebilibili.data.model.response.VideoItem
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,11 +12,15 @@ import kotlin.test.assertTrue
 class HomeNotInterestedPolicyTest {
 
     @Test
-    fun `not interested blocks valid creator mids`() {
+    fun `creator reason blocks valid creator mids`() {
         val action = resolveHomeNotInterestedAction(
-            VideoItem(
+            video = VideoItem(
                 bvid = "BV1",
                 owner = Owner(mid = 42L, name = "UP-X", face = "face.jpg")
+            ),
+            reason = RecommendationFeedbackReason(
+                name = "UP主:UP-X",
+                localAction = RecommendationFeedbackLocalAction.CREATOR
             )
         )
 
@@ -27,17 +33,65 @@ class HomeNotInterestedPolicyTest {
     }
 
     @Test
-    fun `not interested does not block missing creator mids`() {
+    fun `ordinary not interested only hides current video`() {
         val action = resolveHomeNotInterestedAction(
-            VideoItem(
+            video = VideoItem(
                 bvid = "BV2",
-                owner = Owner(mid = 0L, name = "未知UP")
+                owner = Owner(mid = 42L, name = "UP-X")
+            ),
+            reason = RecommendationFeedbackReason(
+                name = "这个内容",
+                localAction = RecommendationFeedbackLocalAction.VIDEO_ONLY
             )
         )
 
         assertFalse(action.shouldBlockCreator)
         assertFalse(action.shouldSyncCreatorToBilibiliBlockedList)
-        assertEquals(0L, action.creatorMid)
+        assertEquals(42L, action.creatorMid)
+        assertTrue(action.keywords.isEmpty())
+    }
+
+    @Test
+    fun `category and similar reasons produce targeted keywords`() {
+        val video = VideoItem(
+            bvid = "BV3",
+            title = "猫咪搞笑合集第二期",
+            tname = "动物圈"
+        )
+
+        val categoryAction = resolveHomeNotInterestedAction(
+            video = video,
+            reason = RecommendationFeedbackReason(
+                name = "分区:动物圈",
+                localAction = RecommendationFeedbackLocalAction.CATEGORY
+            )
+        )
+        val similarAction = resolveHomeNotInterestedAction(
+            video = video,
+            reason = RecommendationFeedbackReason(
+                name = "此类内容过多",
+                localAction = RecommendationFeedbackLocalAction.SIMILAR_CONTENT
+            )
+        )
+
+        assertEquals(setOf("动物圈"), categoryAction.keywords)
+        assertTrue(similarAction.keywords.isNotEmpty())
+        assertFalse(similarAction.shouldBlockCreator)
+    }
+
+    @Test
+    fun `web feed without remote reasons gets local fallback choices`() {
+        val reasons = resolveHomeNotInterestedReasons(
+            VideoItem(
+                title = "test",
+                tname = "知识",
+                owner = Owner(mid = 42L, name = "UP-X")
+            )
+        )
+
+        assertTrue(reasons.any { it.localAction == RecommendationFeedbackLocalAction.VIDEO_ONLY })
+        assertTrue(reasons.any { it.localAction == RecommendationFeedbackLocalAction.CREATOR })
+        assertTrue(reasons.any { it.localAction == RecommendationFeedbackLocalAction.CATEGORY })
     }
 
     @Test

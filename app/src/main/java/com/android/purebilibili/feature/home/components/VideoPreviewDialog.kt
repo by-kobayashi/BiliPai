@@ -48,9 +48,6 @@ import androidx.media3.common.Player
 
 import androidx.compose.material.icons.rounded.Fullscreen
 import com.android.purebilibili.core.ui.blur.unifiedBlur
-import com.android.purebilibili.core.ui.animation.DissolvableVideoCard
-import com.android.purebilibili.core.ui.animation.DissolveAnimationPreset
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.zIndex
 
 internal fun shouldEnableSaveCoverAction(coverUrl: String): Boolean = coverUrl.isNotBlank()
@@ -81,9 +78,6 @@ fun VideoPreviewDialog(
     val shareIcon = rememberAppShareIcon()
     val blockCreatorIcon = rememberAppVisibilityOffIcon()
     val watchLaterIcon = rememberAppWatchLaterIcon()
-    
-    // Dissolve Animation State
-    var isDissolving by remember { mutableStateOf(false) }
     
     // Playback State
     var isPlaying by remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -128,30 +122,20 @@ fun VideoPreviewDialog(
             ),
         contentAlignment = Alignment.Center
     ) {
-        DissolvableVideoCard(
-            isDissolving = isDissolving,
-            onDissolveComplete = {
-                onDismiss()
-                onNotInterested?.invoke()
-            },
-            cardId = video.bvid
-            ,
-            preset = DissolveAnimationPreset.TELEGRAM_FAST
+        Column(
+            modifier = Modifier
+                .width(300.dp) // Slightly wider than standard alert
+                // Remove padding between items by putting them in one Surface
+                .clip(AppShapes.container(ContainerLevel.Card)) // Clip the whole card
+                .clickable(enabled = false) {}, // Prevent clicks from passing through to background
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .width(300.dp) // Slightly wider than standard alert
-                    // Remove padding between items by putting them in one Surface
-                    .clip(AppShapes.container(ContainerLevel.Card)) // Clip the whole card
-                    .clickable(enabled = false) {}, // Prevent clicks from passing through to background
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
 
-                Surface(
-                    color = AppSurfaceTokens.cardContainer(),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column {
+            Surface(
+                color = AppSurfaceTokens.cardContainer(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column {
                         // 1. Media Area (Cover or Player)
                         Box(
                             modifier = Modifier
@@ -298,11 +282,11 @@ fun VideoPreviewDialog(
                                 isDestructive = true,
                                 onClick = {
                                     haptic(HapticType.HEAVY)
-                                    isDissolving = true // Trigger Thanos snap animation
+                                    onNotInterested()
+                                    onDismiss()
                                 }
                             )
                         }
-                    }
                 }
             }
         }

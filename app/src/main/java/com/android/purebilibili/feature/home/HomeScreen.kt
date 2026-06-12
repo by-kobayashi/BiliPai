@@ -145,6 +145,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import com.android.purebilibili.data.model.response.VideoItem // [Fix] Import VideoItem
 import com.android.purebilibili.feature.home.components.VideoPreviewDialog // [Fix] Import VideoPreviewDialog
+import com.android.purebilibili.feature.home.components.HomeNotInterestedReasonSheet
 import com.android.purebilibili.feature.partition.PartitionContent
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -262,6 +263,7 @@ fun HomeScreen(
 
     // [Feature] Video Preview State (Global Scope)
     val targetVideoItemState = remember { mutableStateOf<VideoItem?>(null) }
+    var pendingNotInterestedVideo by remember { mutableStateOf<VideoItem?>(null) }
     val homeBackdrop = rememberLayerBackdrop()
 
     val coroutineScope = rememberCoroutineScope() // 用于双击回顶动画
@@ -510,6 +512,14 @@ fun HomeScreen(
 
     //  [新增] JSON 插件过滤提示
     val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(viewModel, snackbarHostState) {
+        viewModel.feedbackEvents.collect { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
     val lastFilteredCount by com.android.purebilibili.core.plugin.json.JsonPluginManager.lastFilteredCount.collectAsStateWithLifecycle()
     
     //  当有视频被过滤时显示提示
@@ -1581,17 +1591,9 @@ fun HomeScreen(
                                  // Data Content
                                  // [性能优化] Stabilize event callbacks to prevent recomposition on scroll
                                  val onLoadMoreCallback = remember(viewModel) { { viewModel.loadMore() } }
-                                 val onDismissVideoCallback = remember(viewModel, cardAnimationEnabled) {
-                                     { bvid: String ->
-                                         val transition = resolveHomeDismissVisualTransition(
-                                             isFeedbackRecorded = true,
-                                             cardAnimationEnabled = cardAnimationEnabled
-                                         )
-                                         if (transition.shouldStartDissolve) {
-                                             viewModel.startVideoDissolve(bvid)
-                                         } else if (transition.shouldRemoveImmediately) {
-                                             viewModel.completeVideoDissolve(bvid)
-                                         }
+                                 val onDismissVideoCallback = remember {
+                                     { video: VideoItem ->
+                                         pendingNotInterestedVideo = video
                                      }
                                  }
                                  val onWatchLaterCallback = remember(viewModel) { { bvid: String, aid: Long -> viewModel.addToWatchLater(bvid, aid) } }
@@ -2070,7 +2072,7 @@ fun HomeScreen(
                     targetVideoItemState.value = null
                 },
                 onNotInterested = {
-                    viewModel.markNotInterested(item.bvid, cardAnimationEnabled = cardAnimationEnabled)
+                    pendingNotInterestedVideo = item
                     targetVideoItemState.value = null
                 },
                 onBlockCreator = {
@@ -2281,6 +2283,24 @@ fun HomeScreen(
     // 指示器位置逻辑也移入 graphicsLayer
     Box(modifier = Modifier.fillMaxSize()) {
         scaffoldContent()
+        val video = pendingNotInterestedVideo
+        if (video != null) {
+            HomeNotInterestedReasonSheet(
+                video = video,
+                reasons = resolveHomeNotInterestedReasons(video),
+                onReasonSelected = { reason ->
+                    pendingNotInterestedVideo = null
+                    viewModel.markNotInterested(
+                        video = video,
+                        reason = reason,
+                        cardAnimationEnabled = cardAnimationEnabled
+                    )
+                },
+                onDismissRequest = {
+                    pendingNotInterestedVideo = null
+                }
+            )
+        }
     }
 }
 

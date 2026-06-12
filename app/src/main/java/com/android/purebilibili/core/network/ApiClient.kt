@@ -320,6 +320,11 @@ interface BilibiliApi {
     //  移动端推荐流 API (需要 access_token + appkey 签名)
     @GET("https://app.bilibili.com/x/v2/feed/index")
     suspend fun getMobileFeed(@QueryMap params: Map<String, String>): MobileFeedResponse
+
+    @GET("https://app.bilibili.com/x/feed/dislike")
+    suspend fun submitMobileFeedDislike(
+        @QueryMap params: Map<String, String>
+    ): SimpleApiResponse
     
     @GET("x/web-interface/popular")
     suspend fun getPopularVideos(
