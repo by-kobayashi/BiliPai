@@ -255,6 +255,14 @@ class VideoPlayerOverlayPolicyTest {
     }
 
     @Test
+    fun centerPlayButton_routesSingleAndDoubleTapToSameResumeAction() {
+        val source = loadVideoPlayerOverlaySource()
+
+        assertTrue(source.contains("onClick = resumeFromCenterButton"))
+        assertTrue(source.contains("onDoubleClick = resumeFromCenterButton"))
+    }
+
+    @Test
     fun playbackButtonState_staysActiveWhilePlayerIsBufferingForResume() {
         assertTrue(
             resolveOverlayPlaybackButtonPlayingState(
@@ -834,5 +842,12 @@ class VideoPlayerOverlayPolicyTest {
                 isSeekScrubbing = true
             )
         )
+    }
+
+    private fun loadVideoPlayerOverlaySource(): String {
+        return listOf(
+            File("app/src/main/java/com/android/purebilibili/feature/video/ui/overlay/VideoPlayerOverlay.kt"),
+            File("src/main/java/com/android/purebilibili/feature/video/ui/overlay/VideoPlayerOverlay.kt")
+        ).first(File::exists).readText()
     }
 }

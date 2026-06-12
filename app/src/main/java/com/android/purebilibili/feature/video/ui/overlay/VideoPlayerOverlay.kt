@@ -1496,9 +1496,14 @@ fun VideoPlayerOverlay(
             enter = scaleIn(tween(250)) + fadeIn(tween(200)),
             exit = scaleOut(tween(200)) + fadeOut(tween(200))
         ) {
+            val resumeFromCenterButton = {
+                playPlayerFromUserAction(player)
+                isPlaying = true
+            }
             OverlayPlaybackButton(
                 isPlaying = false,
-                onClick = { playPlayerFromUserAction(player); isPlaying = true },
+                onClick = resumeFromCenterButton,
+                onDoubleClick = resumeFromCenterButton,
                 outerSize = overlayVisualPolicy.centerPlayButtonSizeDp.dp,
                 innerSize = overlayVisualPolicy.centerPlayInnerButtonSizeDp.dp,
                 glyphSize = overlayVisualPolicy.centerPlayIconSizeDp.dp
