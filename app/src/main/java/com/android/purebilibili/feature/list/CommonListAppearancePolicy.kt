@@ -3,6 +3,7 @@ package com.android.purebilibili.feature.list
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.purebilibili.core.store.HomeSettings
+import com.android.purebilibili.core.store.CommonListHeaderCollapseMode
 import com.android.purebilibili.core.store.resolveEffectiveLiquidGlassEnabled
 import com.android.purebilibili.core.store.resolveHomeHeaderBlurEnabled
 import com.android.purebilibili.core.theme.AndroidNativeVariant
@@ -51,6 +52,21 @@ internal fun shouldUseCommonListHeaderLocalBlur(
 
 internal fun resolveCommonListViewportTopPadding(headerHeight: Dp): Dp {
     return headerHeight.coerceAtLeast(0.dp)
+}
+
+internal fun resolveCommonListHeaderOffsetPx(
+    currentOffsetPx: Float,
+    scrollDeltaYPx: Float,
+    maxCollapsePx: Float,
+    isAtTop: Boolean,
+    mode: CommonListHeaderCollapseMode
+): Float {
+    if (mode == CommonListHeaderCollapseMode.ALWAYS_VISIBLE || maxCollapsePx <= 0f) return 0f
+    if (isAtTop && scrollDeltaYPx >= 0f) return 0f
+    if (mode == CommonListHeaderCollapseMode.SHOW_AT_TOP_ONLY && scrollDeltaYPx > 0f) {
+        return currentOffsetPx.coerceIn(-maxCollapsePx, 0f)
+    }
+    return (currentOffsetPx + scrollDeltaYPx).coerceIn(-maxCollapsePx, 0f)
 }
 
 internal fun resolveCommonListVideoCardAppearance(

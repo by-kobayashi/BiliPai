@@ -28,6 +28,10 @@ class HomeSettingsMappingPolicyTest {
         assertTrue(result.isHeaderBlurEnabled)
         assertEquals(HomeHeaderBlurMode.FOLLOW_PRESET, result.headerBlurMode)
         assertEquals(HomeHeaderCollapseMode.BOTH, result.homeHeaderCollapseMode)
+        assertEquals(
+            CommonListHeaderCollapseMode.SHOW_ON_REVERSE_SCROLL,
+            result.commonListHeaderCollapseMode
+        )
         assertTrue(result.isHeaderCollapseEnabled)
         assertTrue(result.isBottomBarBlurEnabled)
         assertFalse(result.isTopBarLiquidGlassEnabled)
@@ -72,6 +76,8 @@ class HomeSettingsMappingPolicyTest {
             booleanPreferencesKey("header_blur_enabled") to false,
             booleanPreferencesKey("header_collapse_enabled") to false,
             intPreferencesKey("home_header_collapse_mode") to HomeHeaderCollapseMode.TABS_ONLY.value,
+            intPreferencesKey("common_list_header_collapse_mode") to
+                CommonListHeaderCollapseMode.SHOW_AT_TOP_ONLY.value,
             booleanPreferencesKey("bottom_bar_blur_enabled") to false,
             booleanPreferencesKey("top_bar_liquid_glass_enabled") to true,
             booleanPreferencesKey("home_search_liquid_glass_enabled") to false,
@@ -111,6 +117,10 @@ class HomeSettingsMappingPolicyTest {
         assertFalse(result.isHeaderBlurEnabled)
         assertEquals(HomeHeaderBlurMode.ALWAYS_OFF, result.headerBlurMode)
         assertEquals(HomeHeaderCollapseMode.TABS_ONLY, result.homeHeaderCollapseMode)
+        assertEquals(
+            CommonListHeaderCollapseMode.SHOW_AT_TOP_ONLY,
+            result.commonListHeaderCollapseMode
+        )
         assertTrue(result.isHeaderCollapseEnabled)
         assertFalse(result.isBottomBarBlurEnabled)
         assertTrue(result.isTopBarLiquidGlassEnabled)

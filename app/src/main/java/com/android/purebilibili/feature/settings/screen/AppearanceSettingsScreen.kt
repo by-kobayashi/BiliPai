@@ -43,6 +43,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.purebilibili.R
 import com.android.purebilibili.core.store.BottomBarSearchAutoExpandMode
 import com.android.purebilibili.core.store.BottomBarSearchLayoutMode
+import com.android.purebilibili.core.store.CommonListHeaderCollapseMode
 import com.android.purebilibili.core.store.HomeDurationStyle
 import com.android.purebilibili.core.store.HomeFeedCardStyle
 import com.android.purebilibili.core.store.HomeWallpaperEffectMode
@@ -443,6 +444,16 @@ fun AppearanceSettingsContent(
     val homeHeroCarouselAutoplayEnabled by SettingsManager
         .getHomeHeroCarouselAutoplayEnabled(context)
         .collectAsStateWithLifecycle(initialValue = false)
+    val commonListHeaderCollapseMode by SettingsManager
+        .getCommonListHeaderCollapseMode(context)
+        .collectAsStateWithLifecycle(
+            initialValue = CommonListHeaderCollapseMode.SHOW_ON_REVERSE_SCROLL
+        )
+    val commonListHeaderCollapseOptions = remember {
+        CommonListHeaderCollapseMode.entries.map { mode ->
+            PlaybackSegmentOption(mode, mode.label)
+        }
+    }
     val themeRoleOverrides by SettingsManager
         .getThemeRoleOverrides(context)
         .collectAsStateWithLifecycle(initialValue = ThemeRoleOverrides())
@@ -1293,10 +1304,10 @@ fun AppearanceSettingsContent(
             }
         } // End of Personalization item
 
-            //  首页展示 - 抽屉式选择
+            //  首页与列表
             item { 
                 Box(modifier = Modifier.entrance()) {
-                    IOSSectionTitle("首页展示") 
+                    IOSSectionTitle("首页与列表")
                 }
             }
             item {
@@ -1411,6 +1422,21 @@ fun AppearanceSettingsContent(
                             }
                         }
                         
+                        IOSDivider(modifier = Modifier.padding(start = 16.dp))
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            IOSSlidingSegmentedSetting(
+                                title = "列表顶部栏：${commonListHeaderCollapseMode.label}",
+                                subtitle = commonListHeaderCollapseMode.description,
+                                options = commonListHeaderCollapseOptions,
+                                selectedValue = commonListHeaderCollapseMode,
+                                onSelectionChange = { mode ->
+                                    scope.launch {
+                                        SettingsManager.setCommonListHeaderCollapseMode(context, mode)
+                                    }
+                                }
+                            )
+                        }
+
                         IOSDivider(modifier = Modifier.padding(start = 16.dp))
                         IOSSwitchItem(
                             icon = rememberSettingsSemanticIcon(SettingsIconRole.HOME_CARD_STATS_COMPACT),

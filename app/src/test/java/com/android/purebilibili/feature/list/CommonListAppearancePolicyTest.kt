@@ -94,6 +94,19 @@ class CommonListAppearancePolicyTest {
     }
 
     @Test
+    fun historyAndFavoriteHeaderCollapse_usesScrollableInsetAndThemeColors() {
+        val source = listOf(
+            File("app/src/main/java/com/android/purebilibili/feature/list/CommonListScreen.kt"),
+            File("src/main/java/com/android/purebilibili/feature/list/CommonListScreen.kt")
+        ).first { it.exists() }.readText()
+
+        assertTrue(source.contains("historyViewModel != null || favoriteViewModel != null"))
+        assertTrue(source.contains("scrollUnderHeader = commonListHeaderCollapseEnabled"))
+        assertTrue(source.contains("selectedContainerColor = MaterialTheme.colorScheme.primaryContainer"))
+        assertTrue(source.contains("selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer"))
+    }
+
+    @Test
     fun iosFavoriteHeaderLayout_prefersCompactSearchAndChips() {
         val layout = resolveCommonListFavoriteHeaderLayout(
             uiPreset = UiPreset.IOS

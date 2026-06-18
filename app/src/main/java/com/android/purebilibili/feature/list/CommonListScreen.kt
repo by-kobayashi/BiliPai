@@ -10,6 +10,8 @@ import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import com.android.purebilibili.core.ui.blur.unifiedBlur
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import kotlinx.coroutines.flow.distinctUntilChanged
 import androidx.compose.ui.platform.LocalContext // [New]
 import androidx.compose.ui.platform.LocalConfiguration
@@ -18,6 +20,7 @@ import androidx.compose.ui.zIndex // [New]
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned // [New]
 import com.android.purebilibili.core.store.SettingsManager // [New]
+import com.android.purebilibili.core.store.CommonListHeaderCollapseMode
 import com.android.purebilibili.core.store.HomeFeedCardStyle
 import com.android.purebilibili.core.ui.blur.BlurStyles // [New]
 import com.android.purebilibili.core.ui.blur.BlurSurfaceType
@@ -62,6 +65,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -70,6 +74,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -231,6 +237,7 @@ fun CommonListScreen(
     var showHistoryManagementMenu by rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     var showHistoryClearConfirm by rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     var pendingHistorySingleDeleteKey by rememberSaveable { androidx.compose.runtime.mutableStateOf<String?>(null) }
+    val supportsCollapsibleCommonListHeader = historyViewModel != null || favoriteViewModel != null
     val visibleHistoryItems = remember(state.items, historyContentFilter, historyViewModel) {
         if (historyViewModel == null) {
             state.items
@@ -521,6 +528,62 @@ fun CommonListScreen(
     // [New] 动态顶栏高度测量 (最准确的方式)
     var headerHeightPx by androidx.compose.runtime.remember { androidx.compose.runtime.mutableIntStateOf(0) }
     val headerHeightDp = with(LocalDensity.current) { headerHeightPx.toDp() }
+    var commonListHeaderOffsetPx by remember { mutableFloatStateOf(0f) }
+    val commonListHeaderCollapseMode = homeSettings.commonListHeaderCollapseMode
+    val commonListHeaderCollapseEnabled = supportsCollapsibleCommonListHeader &&
+        commonListHeaderCollapseMode != CommonListHeaderCollapseMode.ALWAYS_VISIBLE
+    val isCommonListAtTop by remember(activeCommonListScrollState) {
+        derivedStateOf {
+            when (val scrollState = activeCommonListScrollState()) {
+                is CommonListScrollState.Grid ->
+                    scrollState.state.firstVisibleItemIndex == 0 &&
+                        scrollState.state.firstVisibleItemScrollOffset == 0
+                is CommonListScrollState.List ->
+                    scrollState.state.firstVisibleItemIndex == 0 &&
+                        scrollState.state.firstVisibleItemScrollOffset == 0
+            }
+        }
+    }
+    LaunchedEffect(
+        commonListHeaderCollapseMode,
+        isCommonListAtTop,
+        headerHeightPx,
+        supportsCollapsibleCommonListHeader
+    ) {
+        commonListHeaderOffsetPx = resolveCommonListHeaderOffsetPx(
+            currentOffsetPx = commonListHeaderOffsetPx,
+            scrollDeltaYPx = 0f,
+            maxCollapsePx = headerHeightPx.toFloat(),
+            isAtTop = isCommonListAtTop,
+            mode = if (supportsCollapsibleCommonListHeader) {
+                commonListHeaderCollapseMode
+            } else {
+                CommonListHeaderCollapseMode.ALWAYS_VISIBLE
+            }
+        )
+    }
+    val commonListHeaderScrollConnection = remember(
+        commonListHeaderCollapseMode,
+        headerHeightPx,
+        isCommonListAtTop,
+        supportsCollapsibleCommonListHeader
+    ) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (!supportsCollapsibleCommonListHeader || kotlin.math.abs(available.y) < kotlin.math.abs(available.x)) {
+                    return Offset.Zero
+                }
+                commonListHeaderOffsetPx = resolveCommonListHeaderOffsetPx(
+                    currentOffsetPx = commonListHeaderOffsetPx,
+                    scrollDeltaYPx = available.y,
+                    maxCollapsePx = headerHeightPx.toFloat(),
+                    isAtTop = isCommonListAtTop,
+                    mode = commonListHeaderCollapseMode
+                )
+                return Offset.Zero
+            }
+        }
+    }
 
     // [Feature] Header Blur Optimization
     val isHeaderBlurEnabled = remember(homeSettings, uiPreset) {
@@ -595,7 +658,9 @@ fun CommonListScreen(
         }
 
     AdaptiveScaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier
+            .nestedScroll(commonListHeaderScrollConnection)
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background
     ) { scaffoldPadding ->
         Box(
@@ -692,6 +757,7 @@ fun CommonListScreen(
                                 columns = columns,
                                 spacing = spacing.medium,
                                 padding = PaddingValues(top = headerHeightDp, bottom = scaffoldPadding.calculateBottomPadding()),
+                                scrollUnderHeader = commonListHeaderCollapseEnabled,
                                 cardAnimationEnabled = homeSettings.cardAnimationEnabled,
                                 cardTransitionEnabled = homeSettings.cardTransitionEnabled,
                                 cardMotionTier = cardMotionTier,
@@ -729,6 +795,7 @@ fun CommonListScreen(
                             columns = columns,
                             spacing = spacing.medium,
                             padding = PaddingValues(top = headerHeightDp, bottom = scaffoldPadding.calculateBottomPadding()),
+                            scrollUnderHeader = commonListHeaderCollapseEnabled,
                             cardAnimationEnabled = homeSettings.cardAnimationEnabled,
                             cardTransitionEnabled = homeSettings.cardTransitionEnabled,
                             cardMotionTier = cardMotionTier,
@@ -757,6 +824,7 @@ fun CommonListScreen(
                         columns = columns,
                         spacing = spacing.medium,
                         padding = PaddingValues(top = headerHeightDp, bottom = scaffoldPadding.calculateBottomPadding()),
+                        scrollUnderHeader = commonListHeaderCollapseEnabled,
                         cardAnimationEnabled = homeSettings.cardAnimationEnabled,
                         cardTransitionEnabled = homeSettings.cardTransitionEnabled,
                         cardMotionTier = cardMotionTier,
@@ -846,6 +914,9 @@ fun CommonListScreen(
                 modifier = topBarBackgroundModifier
                     .zIndex(1f)
                     .align(Alignment.TopCenter)
+                    .graphicsLayer {
+                        translationY = commonListHeaderOffsetPx
+                    }
                     .onGloballyPositioned { coordinates ->
                         headerHeightPx = coordinates.size.height
                     }
@@ -1065,7 +1136,13 @@ fun CommonListScreen(
                                             primaryGridState.scrollToItem(0)
                                         }
                                     },
-                                    label = { Text(filter.label) }
+                                    label = { Text(filter.label) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = MaterialTheme.colorScheme.surface,
+                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
                                 )
                             }
                         }
@@ -1381,6 +1458,7 @@ private fun CommonListContent(
     columns: Int,
     spacing: androidx.compose.ui.unit.Dp,
     padding: PaddingValues,
+    scrollUnderHeader: Boolean = false,
     cardAnimationEnabled: Boolean,
     cardTransitionEnabled: Boolean,
     cardMotionTier: MotionTier,
@@ -1416,16 +1494,21 @@ private fun CommonListContent(
         com.android.purebilibili.feature.home.resolveHomeFeedCardLayout(homeFeedCardStyle)
     }
     val resolvedGridState = gridState ?: rememberLazyGridState()
+    val fixedHeaderInset = resolveCommonListViewportTopPadding(padding.calculateTopPadding())
+    val scrollableHeaderInset = if (scrollUnderHeader) fixedHeaderInset else 0.dp
     val viewportModifier = Modifier
         .fillMaxSize()
-        .padding(top = resolveCommonListViewportTopPadding(padding.calculateTopPadding()))
+        .padding(top = if (scrollUnderHeader) 0.dp else fixedHeaderInset)
+    val emptyViewportModifier = Modifier
+        .fillMaxSize()
+        .padding(top = fixedHeaderInset)
     if (isLoading && items.isEmpty()) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(columns),
             contentPadding = PaddingValues(
                 start = spacing,
                 end = spacing,
-                top = spacing,
+                top = scrollableHeaderInset + spacing,
                 bottom = padding.calculateBottomPadding() + spacing
             ),
             horizontalArrangement = Arrangement.spacedBy(spacing),
@@ -1436,7 +1519,7 @@ private fun CommonListContent(
         }
     } else if (error != null && items.isEmpty()) {
         Column(
-            modifier = viewportModifier,
+            modifier = emptyViewportModifier,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -1453,7 +1536,7 @@ private fun CommonListContent(
             }
         }
     } else if (items.isEmpty()) {
-        Box(modifier = viewportModifier, contentAlignment = Alignment.Center) {
+        Box(modifier = emptyViewportModifier, contentAlignment = Alignment.Center) {
              Text("暂无数据", color = Color.Gray)
         }
     } else {
@@ -1482,7 +1565,7 @@ private fun CommonListContent(
         }
 
         if (filteredItems.isEmpty() && searchQuery.isNotEmpty()) {
-             Box(viewportModifier, contentAlignment = Alignment.Center) {
+             Box(emptyViewportModifier, contentAlignment = Alignment.Center) {
                 Text("没有找到相关视频", color = Color.Gray)
              }
         } else {
@@ -1505,7 +1588,7 @@ private fun CommonListContent(
                 contentPadding = PaddingValues(
                     start = cardLayout.outerPaddingDp.dp,
                     end = cardLayout.outerPaddingDp.dp,
-                    top = cardLayout.outerPaddingDp.dp,
+                    top = scrollableHeaderInset + cardLayout.outerPaddingDp.dp,
                     bottom = padding.calculateBottomPadding() + cardLayout.outerPaddingDp.dp + 80.dp
                 ),
                 horizontalArrangement = Arrangement.spacedBy(cardLayout.itemSpacingDp.dp),

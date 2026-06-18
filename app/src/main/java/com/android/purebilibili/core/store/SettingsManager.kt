@@ -427,6 +427,8 @@ data class HomeSettings(
     val liquidGlassStrength: Float = 0.52f,
     val liquidGlassProgress: Float = 0.5f,
     val homeHeaderCollapseMode: HomeHeaderCollapseMode = HomeHeaderCollapseMode.BOTH,
+    val commonListHeaderCollapseMode: CommonListHeaderCollapseMode =
+        CommonListHeaderCollapseMode.SHOW_ON_REVERSE_SCROLL,
     val isHeaderCollapseEnabled: Boolean = true,
     val gridColumnCount: Int = 0, // [New] 网格列数 (0=自动, 1-6=固定)
     val homeFeedCardWidthPreset: HomeFeedCardWidthPreset = HomeFeedCardWidthPreset.AUTO,
@@ -584,6 +586,21 @@ enum class HomeHeaderCollapseMode(
 
         fun fromLegacyBoolean(value: Boolean): HomeHeaderCollapseMode =
             if (value) BOTH else OFF
+    }
+}
+
+enum class CommonListHeaderCollapseMode(
+    val value: Int,
+    val label: String,
+    val description: String
+) {
+    ALWAYS_VISIBLE(0, "始终显示", "历史记录和收藏夹顶部栏保持展开"),
+    SHOW_ON_REVERSE_SCROLL(1, "上滑时显示", "向下浏览时折叠，反向上滑时恢复"),
+    SHOW_AT_TOP_ONLY(2, "仅回顶显示", "向下浏览时折叠，仅回到列表顶部时恢复");
+
+    companion object {
+        fun fromValue(value: Int): CommonListHeaderCollapseMode =
+            entries.find { it.value == value } ?: SHOW_ON_REVERSE_SCROLL
     }
 }
 
@@ -1044,6 +1061,8 @@ object SettingsManager {
     private val KEY_HOME_HEADER_BLUR_MODE = intPreferencesKey("home_header_blur_mode")
     private val KEY_HEADER_COLLAPSE_ENABLED = booleanPreferencesKey("header_collapse_enabled")
     private val KEY_HOME_HEADER_COLLAPSE_MODE = intPreferencesKey("home_header_collapse_mode")
+    private val KEY_COMMON_LIST_HEADER_COLLAPSE_MODE =
+        intPreferencesKey("common_list_header_collapse_mode")
     private val KEY_HOME_TOP_LAYOUT_ORDER = intPreferencesKey("home_top_layout_order")
     private val KEY_BOTTOM_BAR_BLUR_ENABLED = booleanPreferencesKey("bottom_bar_blur_enabled")
     private val KEY_TOP_BAR_LIQUID_GLASS_ENABLED = booleanPreferencesKey("top_bar_liquid_glass_enabled")
@@ -1203,6 +1222,10 @@ object SettingsManager {
             liquidGlassStrength = FIXED_LIQUID_GLASS_STRENGTH,
             liquidGlassProgress = FIXED_LIQUID_GLASS_PROGRESS,
             homeHeaderCollapseMode = headerCollapseMode,
+            commonListHeaderCollapseMode = CommonListHeaderCollapseMode.fromValue(
+                preferences[KEY_COMMON_LIST_HEADER_COLLAPSE_MODE]
+                    ?: CommonListHeaderCollapseMode.SHOW_ON_REVERSE_SCROLL.value
+            ),
             isHeaderCollapseEnabled = headerCollapseMode.hasAnyCollapse,
             gridColumnCount = preferences[KEY_GRID_COLUMN_COUNT] ?: 0,
             homeFeedCardWidthPreset = HomeFeedCardWidthPreset.fromValue(
@@ -2163,6 +2186,23 @@ object SettingsManager {
     suspend fun setHomeFeedCardStyle(context: Context, style: HomeFeedCardStyle) {
         context.settingsDataStore.edit { preferences ->
             preferences[KEY_HOME_FEED_CARD_STYLE] = style.value
+        }
+    }
+
+    fun getCommonListHeaderCollapseMode(context: Context): Flow<CommonListHeaderCollapseMode> =
+        context.settingsDataStore.data.map { preferences ->
+            CommonListHeaderCollapseMode.fromValue(
+                preferences[KEY_COMMON_LIST_HEADER_COLLAPSE_MODE]
+                    ?: CommonListHeaderCollapseMode.SHOW_ON_REVERSE_SCROLL.value
+            )
+        }
+
+    suspend fun setCommonListHeaderCollapseMode(
+        context: Context,
+        mode: CommonListHeaderCollapseMode
+    ) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[KEY_COMMON_LIST_HEADER_COLLAPSE_MODE] = mode.value
         }
     }
 
@@ -5891,6 +5931,10 @@ object SettingsManager {
             IntShareablePreferenceDefinition(KEY_BOTTOM_BAR_VISIBILITY_MODE, SettingsShareSection.NAVIGATION),
             IntShareablePreferenceDefinition(KEY_HOME_TOP_LAYOUT_ORDER, SettingsShareSection.NAVIGATION),
             IntShareablePreferenceDefinition(KEY_HOME_HEADER_COLLAPSE_MODE, SettingsShareSection.NAVIGATION),
+            IntShareablePreferenceDefinition(
+                KEY_COMMON_LIST_HEADER_COLLAPSE_MODE,
+                SettingsShareSection.NAVIGATION
+            ),
             BooleanShareablePreferenceDefinition(KEY_HEADER_COLLAPSE_ENABLED, SettingsShareSection.NAVIGATION),
             BooleanShareablePreferenceDefinition(KEY_TABLET_NAVIGATION_MODE, SettingsShareSection.NAVIGATION),
             IntShareablePreferenceDefinition(KEY_DYNAMIC_PAGE_LAYOUT_DIRECTION, SettingsShareSection.NAVIGATION),
