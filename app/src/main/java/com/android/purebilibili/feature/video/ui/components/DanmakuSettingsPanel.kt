@@ -1526,8 +1526,8 @@ private fun DanmakuSliderItem(
                 value = localValue,
                 onValueChange = { newValue ->
                     localValue = newValue
-                    onValueChange(newValue)
                 },
+                onValueChangeFinished = { onValueChange(localValue) },
                 valueRange = valueRange,
                 steps = steps,
                 colors = SliderDefaults.colors(

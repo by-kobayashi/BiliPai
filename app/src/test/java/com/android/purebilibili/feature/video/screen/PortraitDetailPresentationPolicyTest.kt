@@ -299,6 +299,14 @@ class PortraitDetailPresentationPolicyTest {
     }
 
     @Test
+    fun introScrollCollapseThreshold_ignoresPixelChangesWithinSameSide() {
+        assertFalse(isVideoDetailIntroScrollPastCollapseThreshold(0, 20))
+        assertFalse(isVideoDetailIntroScrollPastCollapseThreshold(0, 55))
+        assertTrue(isVideoDetailIntroScrollPastCollapseThreshold(0, 56))
+        assertTrue(isVideoDetailIntroScrollPastCollapseThreshold(1, 0))
+    }
+
+    @Test
     fun inlinePortraitPlayerCollapseMode_followsPortraitOrientationStrategy() {
         assertTrue(
             shouldUseCompactInlinePortraitPlayerForIntroScroll(

@@ -120,8 +120,19 @@ internal fun shouldUseCompactInlinePortraitPlayerForIntroScroll(
     if (collapseMode == PortraitPlayerCollapseMode.PAUSED_ONLY && !isPlaybackPaused) return false
     if (!collapseMode.enablesIntro) return false
     if (selectedTabIndex != 0) return false
-    if (firstVisibleItemIndex > 0) return true
-    return firstVisibleItemScrollOffset >= introScrollThresholdPx
+    return isVideoDetailIntroScrollPastCollapseThreshold(
+        firstVisibleItemIndex = firstVisibleItemIndex,
+        firstVisibleItemScrollOffset = firstVisibleItemScrollOffset,
+        thresholdPx = introScrollThresholdPx
+    )
+}
+
+internal fun isVideoDetailIntroScrollPastCollapseThreshold(
+    firstVisibleItemIndex: Int,
+    firstVisibleItemScrollOffset: Int,
+    thresholdPx: Int = 56
+): Boolean {
+    return firstVisibleItemIndex > 0 || firstVisibleItemScrollOffset >= thresholdPx
 }
 
 internal fun resolveInlinePortraitPlayerCollapseProgress(

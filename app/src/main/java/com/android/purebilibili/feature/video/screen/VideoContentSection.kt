@@ -349,7 +349,7 @@ fun VideoContentSection(
     showInteractionActions: Boolean = true,
     isVideoPlaying: Boolean = false,
     onSelectedTabChange: (Int) -> Unit = {},
-    onIntroScrollStateChange: (Int, Int) -> Unit = { _, _ -> },
+    onIntroScrollThresholdChange: (Boolean) -> Unit = {},
     onCommentScrollStateChange: (Int, Int) -> Unit = { _, _ -> },
     bottomContentPadding: Dp = if (showInteractionActions) 84.dp else 12.dp
 ) {
@@ -439,11 +439,14 @@ fun VideoContentSection(
             }
     }
     LaunchedEffect(introListState) {
-        snapshotFlow { introListState.firstVisibleItemIndex to introListState.firstVisibleItemScrollOffset }
+        snapshotFlow {
+            isVideoDetailIntroScrollPastCollapseThreshold(
+                firstVisibleItemIndex = introListState.firstVisibleItemIndex,
+                firstVisibleItemScrollOffset = introListState.firstVisibleItemScrollOffset
+            )
+        }
             .distinctUntilChanged()
-            .collect { state: Pair<Int, Int> ->
-                onIntroScrollStateChange(state.first, state.second)
-            }
+            .collect(onIntroScrollThresholdChange)
     }
     LaunchedEffect(commentListState) {
         snapshotFlow { commentListState.firstVisibleItemIndex to commentListState.firstVisibleItemScrollOffset }

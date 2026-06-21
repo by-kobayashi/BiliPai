@@ -3183,8 +3183,8 @@ fun VideoDetailScreen(
                             isVerticalVideo = isVerticalVideo,
                             isPlaybackPaused = isPlaybackPaused
                         )
-                        var introFirstVisibleItemIndex by remember { mutableIntStateOf(0) }
-                        var introFirstVisibleItemScrollOffset by remember { mutableIntStateOf(0) }
+                        // 父层只关心折叠阈值，避免列表每个像素的滚动都触发整页重组。
+                        var introScrollPastCollapseThreshold by remember { mutableStateOf(false) }
                         val inlinePlayerCollapseState = rememberInlinePortraitPlayerCollapseState()
                         val compactInlinePlayerForCommentTab =
                             shouldUseCompactInlinePortraitPlayerForCommentTab(
@@ -3201,8 +3201,8 @@ fun VideoDetailScreen(
                                 useOfficialInlinePortraitDetailExperience = useOfficialInlinePortraitDetailExperience,
                                 selectedTabIndex = selectedVideoContentTabIndex,
                                 isPortraitFullscreen = isPortraitFullscreen,
-                                firstVisibleItemIndex = introFirstVisibleItemIndex,
-                                firstVisibleItemScrollOffset = introFirstVisibleItemScrollOffset,
+                                firstVisibleItemIndex = if (introScrollPastCollapseThreshold) 1 else 0,
+                                firstVisibleItemScrollOffset = 0,
                                 collapseMode = portraitPlayerCollapseMode,
                                 isVerticalVideo = isVerticalVideo,
                                 isPlaybackPaused = isPlaybackPaused
@@ -3634,9 +3634,8 @@ fun VideoDetailScreen(
                                         homeUpBadgesVisible = homeUpBadgesVisible,
                                         isVideoPlaying = isVideoPlaying,
                                         onSelectedTabChange = { selectedVideoContentTabIndex = it },
-                                        onIntroScrollStateChange = { index, offset ->
-                                            introFirstVisibleItemIndex = index
-                                            introFirstVisibleItemScrollOffset = offset
+                                        onIntroScrollThresholdChange = {
+                                            introScrollPastCollapseThreshold = it
                                         },
                                         openFavoriteFolders = openFavoriteFolders,
                                         navigateToUserSpaceFromVideo = navigateToUserSpaceFromVideo,
