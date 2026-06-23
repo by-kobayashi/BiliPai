@@ -93,6 +93,11 @@ internal fun resolveSettingsRootCategoryForSearchTarget(
     SettingsSearchTarget.DONATE -> SettingsRootCategory.EXTENSION_ABOUT
 }
 
+internal fun resolveSettingsRootCategoryByName(name: String?): SettingsRootCategory? {
+    if (name == null) return null
+    return SettingsRootCategory.entries.firstOrNull { it.name == name }
+}
+
 internal fun isSceneSettingsSearchTarget(target: SettingsSearchTarget): Boolean = target in setOf(
     SettingsSearchTarget.INTERFACE_THEME,
     SettingsSearchTarget.HOME_FEED,
@@ -101,25 +106,3 @@ internal fun isSceneSettingsSearchTarget(target: SettingsSearchTarget): Boolean 
     SettingsSearchTarget.DATA_BACKUP,
     SettingsSearchTarget.DIAGNOSTICS
 )
-
-internal fun resolveSettingsRootCategoryListIndex(category: SettingsRootCategory): Int {
-    val orderIndex = resolveSettingsRootCategoryOrder().indexOf(category)
-    if (orderIndex < 0) return 0
-    return 2 + orderIndex
-}
-
-internal fun isSettingsRootCategoryExpanded(
-    expandedNames: List<String>,
-    category: SettingsRootCategory
-): Boolean = category.name in expandedNames
-
-internal fun resolveSettingsRootCategoryExpandedNamesAfterToggle(
-    expandedNames: List<String>,
-    category: SettingsRootCategory
-): List<String> {
-    return if (isSettingsRootCategoryExpanded(expandedNames, category)) {
-        expandedNames - category.name
-    } else {
-        expandedNames + category.name
-    }
-}

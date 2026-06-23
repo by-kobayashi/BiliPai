@@ -86,7 +86,8 @@ class SettingsRootCategoryContentStructureTest {
             .substringBefore("item { Spacer(modifier = Modifier.height(16.dp)) }")
 
         assertFalse(rootLoopBlock.contains("SettingsCategoryHeader("))
-        assertTrue(rootLoopBlock.contains("SettingsRootCategoryCollapsibleSection("))
+        assertTrue(rootLoopBlock.contains("SettingsRootCategoryNavigationSection("))
+        assertFalse(rootLoopBlock.contains("SettingsRootCategoryContent("))
     }
 
     @Test
@@ -123,22 +124,33 @@ class SettingsRootCategoryContentStructureTest {
     }
 
     @Test
-    fun mobileSettingsRootUsesCollapsibleCategorySections() {
+    fun mobileSettingsRootUsesNavigationCategorySections() {
         val source = listOf(
             File("app/src/main/java/com/android/purebilibili/feature/settings/ui/SettingsSections.kt"),
             File("src/main/java/com/android/purebilibili/feature/settings/ui/SettingsSections.kt")
         ).first { it.exists() }.readText()
 
         val sectionBlock = source
-            .substringAfter("internal fun SettingsRootCategoryCollapsibleSection(")
+            .substringAfter("internal fun SettingsRootCategoryNavigationSection(")
             .substringBefore("@Composable\ninternal fun SettingsSceneShortcutSection(")
 
         assertTrue(sectionBlock.contains("text = category.title"))
         assertTrue(sectionBlock.contains("text = category.subtitle"))
-        assertTrue(sectionBlock.contains("CupertinoIcons.Default.ChevronUp"))
-        assertTrue(sectionBlock.contains("CupertinoIcons.Default.ChevronDown"))
-        assertTrue(sectionBlock.contains("AnimatedVisibility("))
-        assertTrue(sectionBlock.contains("SettingsRootCategoryContent("))
+        assertTrue(sectionBlock.contains("CupertinoIcons.Default.ChevronForward"))
+        assertFalse(sectionBlock.contains("AnimatedVisibility("))
+        assertFalse(sectionBlock.contains("SettingsRootCategoryContent("))
+    }
+
+    @Test
+    fun mobileSettingsRootUsesCategoryDetailScreenInsteadOfInlineExpansion() {
+        val source = listOf(
+            File("app/src/main/java/com/android/purebilibili/feature/settings/screen/SettingsScreen.kt"),
+            File("src/main/java/com/android/purebilibili/feature/settings/screen/SettingsScreen.kt")
+        ).first { it.exists() }.readText()
+
+        assertTrue(source.contains("activeRootCategoryName"))
+        assertTrue(source.contains("SettingsRootCategoryDetailLayout("))
+        assertFalse(source.contains("expandedRootCategoryNames"))
     }
 
     @Test

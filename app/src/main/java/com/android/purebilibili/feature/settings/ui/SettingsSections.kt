@@ -1,11 +1,6 @@
 package com.android.purebilibili.feature.settings
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -274,89 +269,67 @@ internal data class SettingsRootCategoryState(
 )
 
 @Composable
-internal fun SettingsRootCategoryCollapsibleSection(
+internal fun SettingsRootCategoryNavigationSection(
     category: SettingsRootCategory,
-    isExpanded: Boolean,
-    onToggleExpanded: () -> Unit,
-    actions: SettingsRootCategoryActions,
-    state: SettingsRootCategoryState
+    onClick: () -> Unit
 ) {
     val uiPreset = LocalUiPreset.current
     val visual = rememberSettingsEntryVisual(category.searchTarget, uiPreset)
     val effectiveIconTint = rememberAdaptiveSemanticIconTint(visual.iconTint, uiPreset)
 
-    Column {
-        SettingsCardGroup {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onToggleExpanded)
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(AppShapes.container(ContainerLevel.Chip))
-                        .background(effectiveIconTint.copy(alpha = 0.14f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    when {
-                        visual.icon != null -> Icon(
-                            imageVector = visual.icon,
-                            contentDescription = null,
-                            tint = effectiveIconTint,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        visual.iconResId != null -> Icon(
-                            painter = painterResource(id = visual.iconResId),
-                            contentDescription = null,
-                            tint = effectiveIconTint,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(14.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = category.title,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = category.subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    imageVector = if (isExpanded) {
-                        CupertinoIcons.Default.ChevronUp
-                    } else {
-                        CupertinoIcons.Default.ChevronDown
-                    },
-                    contentDescription = if (isExpanded) "收起${category.title}" else "展开${category.title}",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-        AnimatedVisibility(
-            visible = isExpanded,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+    SettingsCardGroup {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.padding(top = 12.dp)) {
-                SettingsRootCategoryContent(
-                    category = category,
-                    actions = actions,
-                    state = state
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(AppShapes.container(ContainerLevel.Chip))
+                    .background(effectiveIconTint.copy(alpha = 0.14f)),
+                contentAlignment = Alignment.Center
+            ) {
+                when {
+                    visual.icon != null -> Icon(
+                        imageVector = visual.icon,
+                        contentDescription = null,
+                        tint = effectiveIconTint,
+                        modifier = Modifier.size(22.dp)
+                    )
+                    visual.iconResId != null -> Icon(
+                        painter = painterResource(id = visual.iconResId),
+                        contentDescription = null,
+                        tint = effectiveIconTint,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = category.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = category.subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = CupertinoIcons.Default.ChevronForward,
+                contentDescription = "进入${category.title}",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
@@ -401,7 +374,7 @@ internal fun SettingsRootCategoryContent(
                 shortcuts = listOf(
                     SettingsSceneShortcut(
                         target = SettingsSearchTarget.INTERFACE_THEME,
-                        title = "界面与首页",
+                        title = "外观设置",
                         value = "UI 预设、主题、字体、DPI、动态图标与开屏",
                         onClick = actions.onAppearanceClick
                     ),
@@ -418,7 +391,7 @@ internal fun SettingsRootCategoryContent(
                     shortcuts = listOf(
                         SettingsSceneShortcut(
                             target = SettingsSearchTarget.HOME_FEED,
-                            title = "首页、动态与推荐",
+                            title = "首页展示",
                             value = "展示样式、首页壁纸效果、推荐流卡片宽度",
                             onClick = actions.onAppearanceClick
                         )

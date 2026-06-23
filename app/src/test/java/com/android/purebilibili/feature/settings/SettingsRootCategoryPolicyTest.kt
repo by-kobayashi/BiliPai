@@ -56,32 +56,11 @@ class SettingsRootCategoryPolicyTest {
     }
 
     @Test
-    fun `root category list index points to content cards after search bar`() {
-        assertEquals(2, resolveSettingsRootCategoryListIndex(SettingsRootCategory.INTERFACE_HOME))
-        assertEquals(3, resolveSettingsRootCategoryListIndex(SettingsRootCategory.DYNAMIC_RECOMMEND))
-        assertEquals(4, resolveSettingsRootCategoryListIndex(SettingsRootCategory.PLAYBACK_INTERACTION))
-        assertEquals(7, resolveSettingsRootCategoryListIndex(SettingsRootCategory.EXTENSION_ABOUT))
-    }
-
-    @Test
-    fun `root category expansion starts collapsed and toggles by category name`() {
-        val empty = emptyList<String>()
-
-        assertEquals(false, isSettingsRootCategoryExpanded(empty, SettingsRootCategory.INTERFACE_HOME))
-
-        val expanded = resolveSettingsRootCategoryExpandedNamesAfterToggle(
-            expandedNames = empty,
-            category = SettingsRootCategory.INTERFACE_HOME
-        )
-        assertEquals(listOf(SettingsRootCategory.INTERFACE_HOME.name), expanded)
-        assertEquals(true, isSettingsRootCategoryExpanded(expanded, SettingsRootCategory.INTERFACE_HOME))
-
+    fun `root category name resolves back to category for mobile detail navigation`() {
         assertEquals(
-            empty,
-            resolveSettingsRootCategoryExpandedNamesAfterToggle(
-                expandedNames = expanded,
-                category = SettingsRootCategory.INTERFACE_HOME
-            )
+            SettingsRootCategory.INTERFACE_HOME,
+            resolveSettingsRootCategoryByName(SettingsRootCategory.INTERFACE_HOME.name)
         )
+        assertEquals(null, resolveSettingsRootCategoryByName("UNKNOWN"))
     }
 }
