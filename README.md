@@ -20,6 +20,9 @@
   <img src="https://img.shields.io/badge/Kotlin-100%25-7F52FF?style=flat-square&logo=kotlin&logoColor=white" alt="Kotlin" />
   <img src="https://img.shields.io/badge/License-GPL--3.0-FF3B30?style=flat-square" alt="GPL-3.0" />
   <img src="https://img.shields.io/github/stars/jay3-yy/BiliPai?style=flat-square&color=FF9500&labelColor=ffffff" alt="Stars" />
+  <a href="https://github.com/jay3-yy/BiliPai/releases">
+    <img src="https://img.shields.io/github/downloads/jay3-yy/BiliPai/total?style=flat-square&color=34C759&label=%E6%80%BB%E4%B8%8B%E8%BD%BD%E9%87%8F&labelColor=ffffff" alt="总下载量" />
+  </a>
 </p>
 
 <p>
