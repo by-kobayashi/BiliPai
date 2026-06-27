@@ -81,6 +81,13 @@ internal fun shouldUseViewportBoundPortraitCover(
 
 internal fun resolvePortraitCoverContentScale(): ContentScale = ContentScale.Fit
 
+internal fun resolvePortraitCoverViewportAspect(
+    currentVideoAspect: Float,
+    hasRenderedFirstFrame: Boolean
+): Float {
+    return if (hasRenderedFirstFrame) currentVideoAspect else 9f / 16f
+}
+
 internal fun shouldShowPortraitPauseIcon(
     isCurrentPage: Boolean,
     isPlaying: Boolean,

@@ -1856,7 +1856,10 @@ private fun VideoPageItem(
                     )
                 ) {
                     PortraitVideoViewportContainer(
-                        currentVideoAspect = currentVideoAspect,
+                        currentVideoAspect = resolvePortraitCoverViewportAspect(
+                            currentVideoAspect = currentVideoAspect,
+                            hasRenderedFirstFrame = hasRenderedFirstFrame
+                        ),
                         modifier = Modifier.fillMaxSize()
                     ) {
                         AsyncImage(

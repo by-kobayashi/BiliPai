@@ -293,6 +293,28 @@ class PortraitPagerSwitchPolicyTest {
     }
 
     @Test
+    fun portraitCover_usesStableFallbackAspectBeforeFirstFrame() {
+        assertEquals(
+            9f / 16f,
+            resolvePortraitCoverViewportAspect(
+                currentVideoAspect = 16f / 9f,
+                hasRenderedFirstFrame = false
+            )
+        )
+    }
+
+    @Test
+    fun portraitCover_usesRuntimeAspectAfterFirstFrame() {
+        assertEquals(
+            16f / 9f,
+            resolvePortraitCoverViewportAspect(
+                currentVideoAspect = 16f / 9f,
+                hasRenderedFirstFrame = true
+            )
+        )
+    }
+
+    @Test
     fun shouldShowPortraitPauseIcon_hidesWhileBufferingOrLoading() {
         assertFalse(
             shouldShowPortraitPauseIcon(
