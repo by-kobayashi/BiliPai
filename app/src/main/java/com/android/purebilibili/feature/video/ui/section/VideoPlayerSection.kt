@@ -4265,6 +4265,7 @@ fun VideoPlayerSection(
                 },
                 onSeekDragCancel = {
                     sharedSeekSession = cancelPlaybackSeekInteraction(sharedSeekSession)
+                    danmakuManager.cancelSeekScrub()
                 },
                 isSeekScrubbing = sharedSeekSession.isSliderMoving && gestureMode != VideoGestureMode.Seek,
                 //  [加固] 显式同步弹幕到新进度，避免某些设备 seek 回调时机差导致短暂不同步

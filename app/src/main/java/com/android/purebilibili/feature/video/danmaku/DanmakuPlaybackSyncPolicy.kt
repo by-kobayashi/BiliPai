@@ -126,7 +126,7 @@ internal fun resolveDanmakuActionForPlaybackSpeedChange(
 ): DanmakuSyncAction {
     if (!isPlayerPlaying || !hasData) return DanmakuSyncAction.None
     return if (abs(previousSpeed - newSpeed) > 0.01f) {
-        DanmakuSyncAction.SoftResync
+        DanmakuSyncAction.HardResync
     } else {
         DanmakuSyncAction.None
     }

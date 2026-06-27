@@ -459,6 +459,7 @@ class DanmakuManager private constructor(
         reason: String
     ) {
         val ctrl = controller ?: return
+        applyPlaybackSpeedToController(ctrl)
         executeExplicitDanmakuResync(
             pause = { ctrl.pause() },
             setData = { ctrl.setData(list, 0) },
@@ -484,6 +485,7 @@ class DanmakuManager private constructor(
     ) {
         val ctrl = controller ?: return
         val safePositionMs = positionMs.coerceAtLeast(0L)
+        applyPlaybackSpeedToController(ctrl)
         ctrl.start(safePositionMs)
         if (shouldPlay && config.isEnabled) {
             isPlaying = true
@@ -1794,6 +1796,35 @@ class DanmakuManager private constructor(
         )
         Log.d(TAG, "🧹 prepareForSeekScrub() - paused and cleared stale danmakus")
     }
+
+    /**
+     * 进度条拖动取消后，按当前播放位置恢复弹幕时间轴。
+     */
+    fun cancelSeekScrub() {
+        val positionMs = player?.currentPosition?.coerceAtLeast(0L) ?: 0L
+        val shouldPlay = player?.isPlaying == true && config.isEnabled
+        Log.d(TAG, "↩️ cancelSeekScrub() - restoring danmaku at ${positionMs}ms, play=$shouldPlay")
+        cachedDanmakuList?.let { list ->
+            resyncDanmakuTimeline(
+                list = list,
+                positionMs = positionMs,
+                shouldPlay = shouldPlay,
+                reason = "seek_scrub_cancel"
+            )
+        } ?: run {
+            controller?.let { ctrl ->
+                applyPlaybackSpeedToController(ctrl)
+                if (shouldPlay) {
+                    ctrl.start(positionMs)
+                    isPlaying = true
+                    startDriftSync()
+                } else {
+                    ctrl.pause()
+                    isPlaying = false
+                }
+            }
+        }
+    }
     
     /**
      *  跳转到指定时间（拖动进度条完成时调用）
@@ -1812,6 +1843,9 @@ class DanmakuManager private constructor(
                 shouldPlay = shouldPlay,
                 reason = "manual_seek"
             )
+            if (shouldPlay && config.isEnabled) {
+                startDriftSync()
+            }
             Log.w(TAG, "⏭️ Danmaku restarted at ${positionMs}ms")
         } ?: run {
             controller?.clear()

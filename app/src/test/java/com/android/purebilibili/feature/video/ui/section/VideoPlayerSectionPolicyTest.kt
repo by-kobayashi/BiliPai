@@ -1538,6 +1538,16 @@ class VideoPlayerSectionPolicyTest {
     }
 
     @Test
+    fun seekDragCancel_restoresDanmakuAfterScrubCancel() {
+        val source = loadVideoPlayerSectionSource()
+        val cancelBlock = source
+            .substringAfter("onSeekDragCancel = {")
+            .substringBefore("isSeekScrubbing =")
+
+        assertTrue(cancelBlock.contains("cancelPlaybackSeekInteraction"))
+        assertTrue(cancelBlock.contains("danmakuManager.cancelSeekScrub()"))
+    }
+
     fun longPressSpeedDragStart_ignoresRegularDragWhileLongPressSpeedIsActive() {
         val source = loadVideoPlayerSectionSource()
         val dragStartBlock = source

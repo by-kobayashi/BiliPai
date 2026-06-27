@@ -2170,7 +2170,7 @@ private fun VideoPageItem(
                     danmakuManager.seekTo(commitResult.committedPositionMs)
                 }
             },
-            onSeekStart = { },
+            onSeekStart = { danmakuManager.prepareForSeekScrub() },
             seekPositionMs = seekSession.sliderPositionMs,
             isSeekScrubbing = seekSession.isSliderMoving,
             onSeekDragStart = { position ->
@@ -2188,6 +2188,7 @@ private fun VideoPageItem(
             },
             onSeekDragCancel = {
                 seekSession = cancelPlaybackSeekInteraction(seekSession)
+                danmakuManager.cancelSeekScrub()
             },
             onSpeedClick = {
                 if (isCurrentPage) {
