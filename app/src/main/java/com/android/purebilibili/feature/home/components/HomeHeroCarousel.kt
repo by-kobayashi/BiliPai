@@ -20,7 +20,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
@@ -42,12 +41,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.core.tween
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -57,6 +63,12 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.android.purebilibili.core.ui.AppShapes
 import com.android.purebilibili.core.ui.ContainerLevel
+import com.android.purebilibili.core.ui.LocalAnimatedVisibilityScope
+import com.android.purebilibili.core.ui.LocalSharedTransitionScope
+import com.android.purebilibili.core.ui.transition.LocalVideoCardSharedElementSourceRoute
+import com.android.purebilibili.core.ui.transition.VIDEO_SHARED_TRANSITION_STANDARD_DURATION_MILLIS
+import com.android.purebilibili.core.ui.transition.videoCoverSharedElementKey
+import com.android.purebilibili.core.util.CardPositionManager
 import com.android.purebilibili.core.util.FormatUtils
 import com.android.purebilibili.data.model.response.VideoItem
 import com.android.purebilibili.feature.home.HomeHeroCarouselCardTransform
@@ -147,6 +159,7 @@ internal fun HomeHeroCarousel(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun HomeHeroCarouselCard(
     video: VideoItem,
@@ -163,7 +176,51 @@ private fun HomeHeroCarouselCard(
         }
     }
 
+    // —— 共享元素过渡相关 ——
+    val sharedTransitionScope = LocalSharedTransitionScope.current
+    val animatedVisibilityScope = LocalAnimatedVisibilityScope.current
+    val sourceRoute = LocalVideoCardSharedElementSourceRoute.current
+    val hasSharedTransition = sharedTransitionScope != null && animatedVisibilityScope != null
+    val coverSharedEnabled = hasSharedTransition && video.bvid.isNotBlank() && sourceRoute != null
+
+    // 屏幕尺寸（用于 CardPositionManager 归一化坐标计算）
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
+    val screenWidthPx: Float
+    val screenHeightPx: Float
+    val densityValue: Float
+    remember(configuration.screenWidthDp, configuration.screenHeightDp, density) {
+        Triple(
+            with(density) { configuration.screenWidthDp.dp.toPx() },
+            with(density) { configuration.screenHeightDp.dp.toPx() },
+            density.density
+        )
+    }.let { (w, h, d) ->
+        screenWidthPx = w
+        screenHeightPx = h
+        densityValue = d
+    }
+
+    // 卡片坐标引用（惰性记录，仅在点击时读取）
+    val cardCoordsRef = remember { object { var value: LayoutCoordinates? = null } }
+
     val cardShape = AppShapes.container(ContainerLevel.Card)
+
+    // 点击时先记录卡片位置，再执行导航
+    val clickAction: () -> Unit = {
+        cardCoordsRef.value?.takeIf { it.isAttached }?.boundsInRoot()?.let { bounds ->
+            CardPositionManager.recordVideoCardPosition(
+                bvid = video.bvid,
+                sourceRoute = sourceRoute,
+                bounds = bounds,
+                screenWidth = screenWidthPx,
+                screenHeight = screenHeightPx,
+                density = densityValue
+            )
+        }
+        onVideoClick()
+    }
+
     Surface(
         shape = cardShape,
         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -181,13 +238,39 @@ private fun HomeHeroCarouselCard(
                 alpha = transform.alpha
             }
             .clip(cardShape)
-            .clickable(onClick = onVideoClick)
+            .onGloballyPositioned { coordinates ->
+                cardCoordsRef.value = coordinates
+            }
+            .clickable(onClick = clickAction)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             val normalizedCoverUrl = remember(video.pic) { FormatUtils.fixImageUrl(video.pic) }
+
+            // cover 共享边界（仅在有共享作用域且 bvid/sourceRoute 有效时启用）
+            val coverModifier = if (coverSharedEnabled) {
+                with(requireNotNull(sharedTransitionScope)) {
+                    Modifier.sharedBounds(
+                        sharedContentState = rememberSharedContentState(
+                            key = videoCoverSharedElementKey(
+                                video.bvid,
+                                sourceRoute = sourceRoute
+                            )
+                        ),
+                        animatedVisibilityScope = requireNotNull(animatedVisibilityScope),
+                        boundsTransform = { _, _ ->
+                            tween(durationMillis = VIDEO_SHARED_TRANSITION_STANDARD_DURATION_MILLIS)
+                        },
+                        clipInOverlayDuringTransition = OverlayClip(cardShape)
+                    )
+                }
+            } else {
+                Modifier
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .then(coverModifier)
                     .graphicsLayer {
                         translationX = transform.contentParallaxFraction * size.width
                         scaleX = transform.contentScale
