@@ -124,21 +124,17 @@ class BottomBarLiquidSegmentedControlStructureTest {
     }
 
     @Test
-    fun `inline segmented control without external backdrop uses theme softened indicator color`() {
+    fun `inline segmented control uses same neutral idle indicator color as dock`() {
         val themeColor = androidx.compose.ui.graphics.Color(0xFF00A1D6)
         val inlineIndicator = resolveSegmentedControlIndicatorIdleSurfaceColor(
-            hasExternalBackdrop = false,
-            themeColor = themeColor,
             isDarkTheme = false
         )
         val dockedIndicator = resolveSegmentedControlIndicatorIdleSurfaceColor(
-            hasExternalBackdrop = true,
-            themeColor = themeColor,
             isDarkTheme = false
         )
 
         assertEquals(
-            resolveAndroidNativeIndicatorColor(themeColor = themeColor, darkTheme = false).red,
+            resolveBottomBarIdleIndicatorSurfaceColor(darkTheme = false).red,
             inlineIndicator.red,
             0.001f
         )
@@ -147,7 +143,13 @@ class BottomBarLiquidSegmentedControlStructureTest {
             dockedIndicator.red,
             0.001f
         )
-        assertFalse(shouldRenderSegmentedControlExportCapture(
+        assertFalse(
+            resolveAndroidNativeIndicatorColor(themeColor = themeColor, darkTheme = false).red ==
+                inlineIndicator.red
+        )
+        assertTrue(shouldRenderSegmentedControlHiddenCaptureLayer(liquidGlassEnabled = true))
+        assertFalse(shouldRenderSegmentedControlHiddenCaptureLayer(liquidGlassEnabled = false))
+        assertTrue(shouldRenderSegmentedControlExportCapture(
             liquidGlassEnabled = true,
             hasExternalBackdrop = false
         ))
@@ -155,6 +157,22 @@ class BottomBarLiquidSegmentedControlStructureTest {
             liquidGlassEnabled = true,
             hasExternalBackdrop = true
         ))
+        assertFalse(shouldApplySegmentedControlExportThemeTint(hasExternalBackdrop = false))
+        assertTrue(shouldApplySegmentedControlExportThemeTint(hasExternalBackdrop = true))
+        assertFalse(
+            shouldApplySegmentedControlCaptureBackdropEffects(
+                hasExternalBackdrop = false,
+                drawCaptureBackdropEffects = true,
+                liquidGlassEnabled = true
+            )
+        )
+        assertTrue(
+            shouldApplySegmentedControlCaptureBackdropEffects(
+                hasExternalBackdrop = true,
+                drawCaptureBackdropEffects = true,
+                liquidGlassEnabled = true
+            )
+        )
     }
 
     @Test
@@ -268,10 +286,14 @@ class BottomBarLiquidSegmentedControlStructureTest {
         assertTrue(source.contains("val exportTintColor = resolveAndroidNativeExportTintColor("))
         assertTrue(source.contains(".graphicsLayer(colorFilter = ColorFilter.tint(exportTintColor))"))
         assertTrue(source.contains("val hasExternalBackdrop = miuixBackdrop != null"))
-        assertTrue(source.contains("val indicatorContentBackdrop = if (hasExternalBackdrop && liquidGlassEnabled)"))
-        assertTrue(source.contains("rememberMiuixCombinedBackdrop(miuixBackdrop, tabsBackdrop)"))
-        assertTrue(source.contains("shouldRenderSegmentedControlExportCapture("))
+        assertTrue(source.contains("liquidGlassEnabled && hasExternalBackdrop ->"))
+        assertTrue(source.contains("liquidGlassEnabled -> tabsBackdrop"))
+        assertTrue(source.contains("rememberMiuixCombinedBackdrop(miuixBackdrop!!, tabsBackdrop)"))
+        assertTrue(source.contains("shouldRenderSegmentedControlHiddenCaptureLayer("))
+        assertTrue(source.contains("shouldApplySegmentedControlExportThemeTint("))
+        assertTrue(source.contains("shouldApplySegmentedControlCaptureBackdropEffects("))
         assertTrue(source.contains("resolveSegmentedControlIndicatorIdleSurfaceColor("))
+        assertTrue(source.contains("background(containerColor, containerShape)"))
         assertTrue(source.contains("shouldDrawSegmentedControlIndicatorBackdrop("))
         assertFalse(source.contains("val contentBackdrop = if (backdrop != null) combinedBackdrop else null"))
         assertFalse(source.contains("if (liquidGlassEnabled && contentBackdrop != null)"))

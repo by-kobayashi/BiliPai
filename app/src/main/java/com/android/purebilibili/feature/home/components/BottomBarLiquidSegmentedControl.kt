@@ -180,26 +180,37 @@ internal fun shouldDrawSegmentedControlIndicatorBackdrop(
     return hasExternalBackdrop || motionProgress > 0.001f
 }
 
+internal fun shouldRenderSegmentedControlHiddenCaptureLayer(
+    liquidGlassEnabled: Boolean
+): Boolean {
+    return liquidGlassEnabled
+}
+
 internal fun shouldRenderSegmentedControlExportCapture(
     liquidGlassEnabled: Boolean,
     hasExternalBackdrop: Boolean
 ): Boolean {
-    return liquidGlassEnabled && hasExternalBackdrop
+    return shouldRenderSegmentedControlHiddenCaptureLayer(liquidGlassEnabled)
+}
+
+internal fun shouldApplySegmentedControlExportThemeTint(
+    hasExternalBackdrop: Boolean
+): Boolean {
+    return hasExternalBackdrop
+}
+
+internal fun shouldApplySegmentedControlCaptureBackdropEffects(
+    hasExternalBackdrop: Boolean,
+    drawCaptureBackdropEffects: Boolean,
+    liquidGlassEnabled: Boolean
+): Boolean {
+    return drawCaptureBackdropEffects && hasExternalBackdrop && liquidGlassEnabled
 }
 
 internal fun resolveSegmentedControlIndicatorIdleSurfaceColor(
-    hasExternalBackdrop: Boolean,
-    themeColor: Color,
     isDarkTheme: Boolean
 ): Color {
-    return if (hasExternalBackdrop) {
-        resolveBottomBarIdleIndicatorSurfaceColor(darkTheme = isDarkTheme)
-    } else {
-        resolveAndroidNativeIndicatorColor(
-            themeColor = themeColor,
-            darkTheme = isDarkTheme
-        )
-    }
+    return resolveBottomBarIdleIndicatorSurfaceColor(darkTheme = isDarkTheme)
 }
 
 @Composable
@@ -608,19 +619,25 @@ fun BottomBarLiquidSegmentedControl(
             }
         }
         val tabsBackdrop = rememberMiuixLayerBackdrop()
-        val indicatorContentBackdrop = if (hasExternalBackdrop && liquidGlassEnabled) {
-            rememberMiuixCombinedBackdrop(miuixBackdrop, tabsBackdrop)
-        } else {
-            null
+        val indicatorContentBackdrop = when {
+            liquidGlassEnabled && hasExternalBackdrop ->
+                rememberMiuixCombinedBackdrop(miuixBackdrop, tabsBackdrop)
+            liquidGlassEnabled -> tabsBackdrop
+            else -> null
         }
-        val shouldRenderExportCapture = shouldRenderSegmentedControlExportCapture(
-            liquidGlassEnabled = liquidGlassEnabled,
+        val shouldRenderHiddenCapture = shouldRenderSegmentedControlHiddenCaptureLayer(
+            liquidGlassEnabled = liquidGlassEnabled
+        )
+        val applyExportThemeTint = shouldApplySegmentedControlExportThemeTint(
             hasExternalBackdrop = hasExternalBackdrop
+        )
+        val applyCaptureBackdropEffects = shouldApplySegmentedControlCaptureBackdropEffects(
+            hasExternalBackdrop = hasExternalBackdrop,
+            drawCaptureBackdropEffects = drawCaptureBackdropEffects,
+            liquidGlassEnabled = liquidGlassEnabled
         )
         val resolvedIndicatorIdleSurfaceColor = indicatorIdleSurfaceColorOverride
             ?: resolveSegmentedControlIndicatorIdleSurfaceColor(
-                hasExternalBackdrop = hasExternalBackdrop,
-                themeColor = selectedTextColor,
                 isDarkTheme = isDarkTheme
             )
         val backdropPresetProgress = resolveBottomBarBackdropPresetProgress(
@@ -665,7 +682,7 @@ fun BottomBarLiquidSegmentedControl(
             )
         }
 
-        if (shouldRenderExportCapture) {
+        if (shouldRenderHiddenCapture) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -674,7 +691,7 @@ fun BottomBarLiquidSegmentedControl(
                     .miuixLayerBackdrop(tabsBackdrop)
                     .graphicsLayer { translationX = panelOffsetPx }
                     .run {
-                        if (drawCaptureBackdropEffects && miuixBackdrop != null && liquidGlassEnabled) {
+                        if (applyCaptureBackdropEffects && miuixBackdrop != null) {
                             miuixDrawBackdrop(
                                 backdrop = miuixBackdrop,
                                 shape = { containerShape },
@@ -691,10 +708,16 @@ fun BottomBarLiquidSegmentedControl(
                                 }
                             )
                         } else {
-                            this
+                            background(containerColor, containerShape)
                         }
                     }
-                    .graphicsLayer(colorFilter = ColorFilter.tint(exportTintColor))
+                    .then(
+                        if (applyExportThemeTint) {
+                            Modifier.graphicsLayer(colorFilter = ColorFilter.tint(exportTintColor))
+                        } else {
+                            Modifier
+                        }
+                    )
             ) {
                 BottomBarLiquidSegmentedLabels(
                     items = items,
