@@ -714,6 +714,7 @@ internal fun Modifier.homeTopBottomBarMatchedSurface(
 @Composable
 private fun HomeTopTabLiquidSegmentedTabs(
     categories: List<String>,
+    categoryKeys: List<String>,
     selectedIndex: Int,
     onCategorySelected: (Int) -> Unit,
     pagerState: androidx.compose.foundation.pager.PagerState?,
@@ -729,6 +730,8 @@ private fun HomeTopTabLiquidSegmentedTabs(
     val scrollChannel = com.android.purebilibili.feature.home.LocalHomeScrollChannel.current
     val colorScheme = MaterialTheme.colorScheme
     val normalizedLabelMode = normalizeTopTabLabelMode(labelMode)
+    val showIcon = shouldShowTopTabIcon(normalizedLabelMode)
+    val showText = shouldShowTopTabText(normalizedLabelMode)
     val safeSelectedIndex = selectedIndex.coerceIn(0, (categories.size - 1).coerceAtLeast(0))
     val rowHeight = when (renderer) {
         HomeTopTabRenderer.IOS -> resolveIosTopTabRowHeight(isFloatingStyle, normalizedLabelMode)
@@ -845,7 +848,11 @@ private fun HomeTopTabLiquidSegmentedTabs(
             containerColorOverride = captureSurfaceColor,
             drawContainerShell = drawContainerShell,
             drawCaptureBackdropEffects = drawCaptureBackdropEffects,
-            indicatorPositionOverride = indicatorPositionOverride
+            indicatorPositionOverride = indicatorPositionOverride,
+            itemCategoryKeys = categoryKeys,
+            showIcon = showIcon,
+            showText = showText,
+            topTabLabelMode = normalizedLabelMode
         )
     }
 }
@@ -936,6 +943,7 @@ private fun LightweightHomeTopTabs(
     ) {
         HomeTopTabLiquidSegmentedTabs(
             categories = categories,
+            categoryKeys = categoryKeys,
             selectedIndex = safeSelectedIndex,
             onCategorySelected = onCategorySelected,
             pagerState = pagerState,

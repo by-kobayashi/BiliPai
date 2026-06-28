@@ -9,19 +9,24 @@ import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -413,7 +418,11 @@ fun BottomBarLiquidSegmentedControl(
     onIndicatorPositionChanged: ((Float) -> Unit)? = null,
     drawContainerShell: Boolean = true,
     drawCaptureBackdropEffects: Boolean = true,
-    indicatorPositionOverride: Float? = null
+    indicatorPositionOverride: Float? = null,
+    itemCategoryKeys: List<String>? = null,
+    showIcon: Boolean = false,
+    showText: Boolean = true,
+    topTabLabelMode: Int = 2
 ) {
     if (items.isEmpty()) return
 
@@ -702,6 +711,10 @@ fun BottomBarLiquidSegmentedControl(
                     isExportLayer = true,
                     onSelected = onSelected,
                     interactive = false,
+                    itemCategoryKeys = itemCategoryKeys,
+                    showIcon = showIcon,
+                    showText = showText,
+                    topTabLabelMode = topTabLabelMode,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = contentPadding, vertical = contentVerticalInset)
@@ -747,6 +760,10 @@ fun BottomBarLiquidSegmentedControl(
             isExportLayer = false,
             onSelected = onSelected,
             interactive = false,
+            itemCategoryKeys = itemCategoryKeys,
+            showIcon = showIcon,
+            showText = showText,
+            topTabLabelMode = topTabLabelMode,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = contentPadding, vertical = contentVerticalInset)
@@ -769,6 +786,10 @@ fun BottomBarLiquidSegmentedControl(
             onSelected = ::selectFromTap,
             interactive = true,
             onPressChanged = dragState::setPressed,
+            itemCategoryKeys = itemCategoryKeys,
+            showIcon = showIcon,
+            showText = showText,
+            topTabLabelMode = topTabLabelMode,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = contentPadding, vertical = contentVerticalInset)
@@ -872,8 +893,15 @@ private fun BottomBarLiquidSegmentedLabels(
     onSelected: (Int) -> Unit,
     interactive: Boolean,
     onPressChanged: ((Boolean) -> Unit)? = null,
+    itemCategoryKeys: List<String>? = null,
+    showIcon: Boolean = false,
+    showText: Boolean = true,
+    topTabLabelMode: Int = 2,
     modifier: Modifier = Modifier
 ) {
+    val uiPreset = LocalUiPreset.current
+    val iconSize = resolveTopTabIconSizeDp(topTabLabelMode).dp
+    val iconTextSpacing = resolveTopTabIconTextSpacingDp(topTabLabelMode).dp
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
@@ -933,22 +961,62 @@ private fun BottomBarLiquidSegmentedLabels(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = label,
-                    color = textColor,
-                    fontSize = labelFontSize,
-                    fontWeight = if (visual.themeWeight > 0.5f) {
-                        FontWeight.SemiBold
-                    } else {
-                        FontWeight.Medium
-                    },
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.graphicsLayer {
-                        scaleX = 1f
-                        scaleY = 1f
+                if (showIcon && !showText) {
+                    Icon(
+                        imageVector = resolveTopTabCategoryIcon(
+                            categoryKey = itemCategoryKeys?.getOrNull(index) ?: label,
+                            uiPreset = uiPreset
+                        ),
+                        contentDescription = null,
+                        tint = textColor,
+                        modifier = Modifier.size(iconSize)
+                    )
+                } else if (showIcon && showText) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = resolveTopTabCategoryIcon(
+                                categoryKey = itemCategoryKeys?.getOrNull(index) ?: label,
+                                uiPreset = uiPreset
+                            ),
+                            contentDescription = null,
+                            tint = textColor,
+                            modifier = Modifier.size(iconSize)
+                        )
+                        Spacer(modifier = Modifier.height(iconTextSpacing))
+                        Text(
+                            text = label,
+                            color = textColor,
+                            fontSize = labelFontSize,
+                            fontWeight = if (visual.themeWeight > 0.5f) {
+                                FontWeight.SemiBold
+                            } else {
+                                FontWeight.Medium
+                            },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
-                )
+                } else {
+                    Text(
+                        text = label,
+                        color = textColor,
+                        fontSize = labelFontSize,
+                        fontWeight = if (visual.themeWeight > 0.5f) {
+                            FontWeight.SemiBold
+                        } else {
+                            FontWeight.Medium
+                        },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = 1f
+                            scaleY = 1f
+                        }
+                    )
+                }
             }
         }
     }

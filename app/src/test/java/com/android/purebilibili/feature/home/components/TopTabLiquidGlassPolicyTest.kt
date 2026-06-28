@@ -119,6 +119,10 @@ class TopTabLiquidGlassPolicyTest {
         assertTrue(liquidBlock.contains("drawCaptureBackdropEffects = drawCaptureBackdropEffects"))
         assertTrue(liquidBlock.contains("indicatorPositionOverride = indicatorPositionOverride"))
         assertTrue(liquidBlock.contains("resolveMd3TopTabLayoutVisibleSlots("))
+        assertTrue(liquidBlock.contains("itemCategoryKeys = categoryKeys"))
+        assertTrue(liquidBlock.contains("showIcon = showIcon"))
+        assertTrue(liquidBlock.contains("showText = showText"))
+        assertTrue(liquidBlock.contains("topTabLabelMode = normalizedLabelMode"))
         assertTrue(
             source.contains("shouldTopTabUseLiquidSegmentedControl(") &&
                 source.contains("HomeTopTabLiquidSegmentedTabs(")
@@ -135,5 +139,7 @@ class TopTabLiquidGlassPolicyTest {
         assertTrue(source.contains("drawCaptureBackdropEffects: Boolean = true"))
         assertTrue(source.contains("if (drawContainerShell) {"))
         assertTrue(source.contains("drawCaptureBackdropEffects &&"))
+        assertTrue(source.contains("showIcon: Boolean = false"))
+        assertTrue(source.contains("resolveTopTabCategoryIcon("))
     }
 }
