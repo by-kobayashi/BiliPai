@@ -816,8 +816,25 @@ fun ElegantVideoCard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
+                        var compactViewsModifier = Modifier.widthIn(min = compactStatsLayout.primaryMinWidthDp.dp)
+                        if (metadataSharedEnabled) {
+                            with(requireNotNull(sharedTransitionScope)) {
+                                compactViewsModifier = compactViewsModifier.sharedBounds(
+                                    sharedContentState = rememberSharedContentState(
+                                        key = com.android.purebilibili.core.ui.transition.videoViewsSharedElementKey(
+                                            video.bvid,
+                                            sourceRoute = effectiveSharedElementSourceRoute
+                                        )
+                                    ),
+                                    animatedVisibilityScope = requireNotNull(animatedVisibilityScope),
+                                    boundsTransform = { _, _ ->
+                                        videoMetadataSharedElementBoundsTransformSpec(homeSharedTransitionMotionSpec)
+                                    }
+                                )
+                            }
+                        }
                         HomeVideoBadgePill(
-                            modifier = Modifier.widthIn(min = compactStatsLayout.primaryMinWidthDp.dp),
+                            modifier = compactViewsModifier,
                             style = badgeStylePolicy.coverStyle,
                             shape = AppShapes.container(ContainerLevel.Pill),
                             containerColor = coverPillColors.containerColor,
@@ -841,8 +858,25 @@ fun ElegantVideoCard(
                         }
 
                         if (compactStatsLayout.showSecondaryStat && secondaryStatText != null) {
+                            var compactDanmakuModifier = Modifier.widthIn(min = compactStatsLayout.secondaryMinWidthDp.dp)
+                            if (metadataSharedEnabled) {
+                                with(requireNotNull(sharedTransitionScope)) {
+                                    compactDanmakuModifier = compactDanmakuModifier.sharedBounds(
+                                        sharedContentState = rememberSharedContentState(
+                                            key = com.android.purebilibili.core.ui.transition.videoDanmakuSharedElementKey(
+                                                video.bvid,
+                                                sourceRoute = effectiveSharedElementSourceRoute
+                                            )
+                                        ),
+                                        animatedVisibilityScope = requireNotNull(animatedVisibilityScope),
+                                        boundsTransform = { _, _ ->
+                                            videoMetadataSharedElementBoundsTransformSpec(homeSharedTransitionMotionSpec)
+                                        }
+                                    )
+                                }
+                            }
                             HomeVideoBadgePill(
-                                modifier = Modifier.widthIn(min = compactStatsLayout.secondaryMinWidthDp.dp),
+                                modifier = compactDanmakuModifier,
                                 style = badgeStylePolicy.coverStyle,
                                 shape = AppShapes.container(ContainerLevel.Pill),
                                 containerColor = coverPillColors.containerColor,

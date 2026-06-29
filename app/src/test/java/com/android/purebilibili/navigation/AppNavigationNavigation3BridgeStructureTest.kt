@@ -181,6 +181,18 @@ class AppNavigationNavigation3BridgeStructureTest {
     }
 
     @Test
+    fun searchPassesVideoReturnStateToSuppressCardEnterAnimation() {
+        val source = appNavigationSource()
+        val searchBranch = source
+            .substringAfter("BiliPaiNavEntryContentRole.SEARCH ->")
+            .substringBefore("BiliPaiNavEntryContentRole.SEARCH_TRENDING ->")
+
+        assertTrue(searchBranch.contains("isReturningFromVideoDetail = navigation3ReturnSession.isReturningFromDetail"))
+        assertTrue(searchBranch.contains("isQuickReturningFromVideoDetail ="))
+        assertTrue(searchBranch.contains("navigation3ReturnSession.isQuickReturnFromDetail"))
+    }
+
+    @Test
     fun categoryCardsReceiveVideoReturnStateToSuppressEnterAnimation() {
         val source = categoryScreenSource()
 

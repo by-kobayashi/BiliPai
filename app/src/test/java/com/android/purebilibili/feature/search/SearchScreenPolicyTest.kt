@@ -150,6 +150,17 @@ class SearchScreenPolicyTest {
     }
 
     @Test
+    fun videoResultCardsReceiveReturnStateForSharedElementBack() {
+        val source = File("src/main/java/com/android/purebilibili/feature/search/SearchScreen.kt")
+            .readText()
+
+        assertTrue(source.contains("isReturningFromVideoDetail: Boolean = false"))
+        assertTrue(source.contains("isQuickReturningFromVideoDetail: Boolean = false"))
+        assertTrue(source.contains("isReturningFromVideoDetail = isReturningFromVideoDetail"))
+        assertTrue(source.contains("isQuickReturningFromVideoDetail = isQuickReturningFromVideoDetail"))
+    }
+
+    @Test
     fun searchResultLazyItemKey_prefersStableBusinessKeys() {
         assertEquals(
             "video:0:text:BV1xx411c7mD",

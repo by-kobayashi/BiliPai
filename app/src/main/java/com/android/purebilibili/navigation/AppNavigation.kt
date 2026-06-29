@@ -1513,6 +1513,9 @@ fun AppNavigation(
                                         searchEntryMotionSource = SearchEntryMotionSource.NONE
                                     }
                                 },
+                                isReturningFromVideoDetail = navigation3ReturnSession.isReturningFromDetail,
+                                isQuickReturningFromVideoDetail =
+                                    navigation3ReturnSession.isQuickReturnFromDetail,
                                 onBack = { performSystemBackAction() },
                                 onOpenTrending = { pushNavigation3Key(BiliPaiNavKey.SearchTrending) },
                                 onVideoClick = { bvid, cid -> navigateToVideoInNavigation3(bvid, cid, "") },

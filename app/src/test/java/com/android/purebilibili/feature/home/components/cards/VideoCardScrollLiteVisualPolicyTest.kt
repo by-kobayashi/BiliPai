@@ -113,14 +113,16 @@ class VideoCardScrollLiteVisualPolicyTest {
     }
 
     @Test
-    fun `cover stats do not use shared bounds inside lazy grid`() {
+    fun `cover stats participate in video metadata shared bounds`() {
         val source = File("src/main/java/com/android/purebilibili/feature/home/components/cards/VideoCard.kt")
             .readText()
         val coverStatsBlock = source
             .substringAfter("if (scrollLitePolicy.showCompactStatsOnCover) {")
             .substringBefore("//  时长标签")
 
-        assertFalse(coverStatsBlock.contains("sharedBounds("))
+        assertTrue(coverStatsBlock.contains("videoViewsSharedElementKey"))
+        assertTrue(coverStatsBlock.contains("videoDanmakuSharedElementKey"))
+        assertTrue(coverStatsBlock.contains("sharedBounds("))
     }
 
     @Test

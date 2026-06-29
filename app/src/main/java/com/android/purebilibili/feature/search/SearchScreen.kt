@@ -505,7 +505,9 @@ fun SearchScreen(
     onAvatarClick: () -> Unit,
     entryMotionSource: SearchEntryMotionSource = SearchEntryMotionSource.NONE,
     entryMotionKey: Int = 0,
-    onEntryMotionConsumed: (Int) -> Unit = {}
+    onEntryMotionConsumed: (Int) -> Unit = {},
+    isReturningFromVideoDetail: Boolean = false,
+    isQuickReturningFromVideoDetail: Boolean = false
 ) {
     val uiPreset = LocalUiPreset.current
     val androidNativeVariant = LocalAndroidNativeVariant.current
@@ -935,6 +937,8 @@ fun SearchScreen(
                                             animationEnabled = cardAnimationEnabled,
                                             motionTier = cardMotionTier,
                                             transitionEnabled = effectiveCardTransitionEnabled,
+                                            isReturningFromVideoDetail = isReturningFromVideoDetail,
+                                            isQuickReturningFromVideoDetail = isQuickReturningFromVideoDetail,
                                             showPublishTime = true,
                                             glassEnabled = videoCardAppearance.glassEnabled,
                                             blurEnabled = videoCardAppearance.blurEnabled,
